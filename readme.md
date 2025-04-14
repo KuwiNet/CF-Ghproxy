@@ -23,17 +23,17 @@
 ### 仓库主页
 
 ```plaintext
-https://your-domain.com/gh/github.com/user/repo
+https://ghx.pp.ua/github.com/user/repo
 ```
 
 ### Release 文件
 ```plaintext
-https://your-domain.com/gh/github.com/user/repo/releases/download/v1.0.0/app.zip
+https://ghx.pp.ua/github.com/user/repo/releases/download/v1.0.0/app.zip
 ```
 
 ### 原始文件
 ```plaintext
-https://your-domain.com/gh/raw.githubusercontent.com/user/repo/main/file.txt
+https://ghx.pp.ua/raw.githubusercontent.com/user/repo/main/file.txt
 ```
 
 ### Git 克隆
@@ -43,12 +43,12 @@ git clone https://ghx.pp.ua/github.com/user/project.git
 
 ### Gist 文件
 ```plaintext
-https://your-domain.com/gh/gist.githubusercontent.com/user/gist_id/raw/file.txt
+https://ghx.pp.ua/gist.githubusercontent.com/user/gist_id/raw/file.txt
 ```
 
 ### GitHub API
 ```plaintext
-https://your-domain.com/gh/api.github.com/repos/fatedier/frp/releases/latest
+https://ghx.pp.ua/api.github.com/repos/fatedier/frp/releases/latest
 ```
 
 ## 配置说明
