@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>GitHub 文件加速</title>
+	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="favicon.ico">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		@font-face {
+		  font-family: 'iconfont';
+		  src: url('iconfont.woff2?t=1744636726297') format('woff2'),
+		       url('iconfont.woff?t=1744636726297') format('woff'),
+		       url('iconfont.ttf?t=1744636726297') format('truetype');
+		}
+
+		.iconfont {
+		  font-family: "iconfont" !important;
+		  font-size: 16px;
+		  font-style: normal;
+		  color: #fff;
+		  -webkit-font-smoothing: antialiased;
+		  -moz-osx-font-smoothing: grayscale;
+		}
+
+		:root {
+			--primary-color: #1a1e21;
+			--primary-hover: #0d1117;
+			--text-color: #f0f6fc;
+			--bg-gradient: linear-gradient(135deg, #1a1e21 0%, #0d1117 100%);
+			--shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			min-height: 100vh;
+			background: var(--bg-gradient);
+			color: var(--text-color);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 20px;
+		}
+
+		.container {
+			width: 100%;
+			max-width: 800px;
+			padding: 40px 20px;
+			text-align: center;
+		}
+
+		.logo {
+			margin-bottom: 2rem;
+			transform: scale(1);
+			transition: transform 0.3s ease;
+		}
+
+		.logo:hover {
+			transform: scale(1.1);
+		}
+
+		.title {
+			font-size: 2.5rem;
+			font-weight: 600;
+			margin-bottom: 1rem;
+			background: linear-gradient(45deg, #cdd5dd, #e2e8f0);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		.tips a {
+			color: #FFFFFF;
+			text-decoration: none;
+			border-bottom: 1px dashed #FFFFFF;
+			transition: all 0.2s ease;
+		}
+
+		.tips a:hover {
+			color: #FFFFFF;
+			border-bottom-color: #FFFFFF;
+		}
+
+		.search-container {
+			position: relative;
+			max-width: 760px;
+			margin: 2rem auto;
+		}
+
+		.search-input {
+			width: 99%;
+			height: 56px;
+			padding: 0 60px 0 24px;
+			font-size: 1rem;
+			color: #1f2937;
+			background: rgba(255, 255, 255, 0.9);
+			border: 2px solid transparent;
+			border-radius: 12px;
+			box-shadow: var(--shadow);
+			transition: all 0.3s ease;
+		}
+
+		.search-input:focus {
+			border-color: var(--primary-color);
+			background: white;
+			outline: none;
+			box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.2);
+		}
+
+		.search-button {
+			position: absolute;
+			right: 8px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 44px;
+			height: 44px;
+			border: none;
+			border-radius: 8px;
+			background: var(--primary-color);
+			color: white;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.search-button:hover {
+			background: var(--primary-hover);
+			transform: translateY(-50%) scale(1.05);
+		}
+
+		.search-button .iconfont {
+			font-size: 20px;
+		}
+
+		.tips {
+			margin-top: 2rem;
+			color: rgba(255, 255, 255, 0.8);
+			line-height: 1.6;
+			text-align: left;
+			padding-left: 1.8rem;
+		}
+
+		.example-title {
+			color: #9ba1a6;
+			margin-bottom: 1.5rem;
+			font-size: 1rem;
+			font-weight: 700;
+			position: relative;
+			padding-bottom: 0.8rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.example p {
+			margin: 0.8rem 0;
+			font-family: monospace;
+			font-size: 0.95rem;
+			color: rgba(255, 255, 255, 0.8);
+			padding-left: 1.5rem;
+			line-height: 1.4;
+			word-break: break-all;
+		}
+
+		.example {
+			margin-top: 2rem;
+			padding: 1.8rem;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 12px;
+			text-align: left;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			overflow-wrap: break-word;
+			word-wrap: break-word;
+		}
+
+		@media (max-width: 640px) {
+			.container {
+				padding: 20px;
+			}
+
+			.title {
+				font-size: 2rem;
+			}
+
+			.search-input {
+				height: 50px;
+				font-size: 0.9rem;
+			}
+
+			.search-button {
+				width: 38px;
+				height: 38px;
+			}
+
+			.example {
+				padding: 1rem;
+				font-size: 0.8rem;
+				padding-left: 1rem;
+				padding-right: 1rem;
+			}
+
+			.result {
+				padding: 1rem;
+				min-height: 100px;
+			}
+
+			.result a {
+				word-break: break-word;
+			}
+
+			.button-container {
+				flex-direction: column;
+				position: static;
+				margin-top: 10px;
+			}
+		}
+
+		.result {
+			margin-top: 1rem;
+			margin-bottom: 1rem;
+			padding: 1rem;
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			text-align: left;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			position: relative;
+			min-height: 100px;
+		}
+
+		.result a {
+			color: #FFFFFF;
+			text-decoration: none;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			word-break: break-word;
+		}
+
+		.button-container {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			position: absolute;
+			right: 1rem;
+			top: 50%;
+			transform: translateY(-50%);
+		}
+
+		.button {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 40px;
+			height: 40px;
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			color: white;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.button:hover {
+			background: rgba(255, 255, 255, 0.2);
+			color: #1E90FF;
+		}
+
+		.button span.iconfont {
+			font-size: 20px;
+		}
+
+		.notification {
+			position: fixed;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(0, 102, 255, 0.9);
+			color: white;
+			padding: 1rem 2rem;
+			border-radius: 8px;
+			z-index: 1000;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+		}
+
+		.notification.show {
+			opacity: 1;
+		}
+
+		p a {
+			color: #FFFFFF;
+			text-decoration: none;
+		}
+
+		p a:hover {
+			text-decoration: underline;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<center>
+			<div class="logo">
+				<a href="https://ghx.pp.ua/" target="_blank">
+					<svg xmlns="http://www.w3.org/2000/svg" width="180" height="150" viewBox="0 0 512 512" fill="#ffffff">
+						<image href="logo.svg" />
+					</svg>
+				</a>
+			</div>
+			<h1 class="title">GitHub 文件加速</h1>
+		</center>
+
+		<form onsubmit="toSubmit(event)" class="search-container">
+			<input 
+				type="text" 
+				class="search-input"
+				name="q" 
+				placeholder="请输入 GitHub 文件链接"
+				pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
+				required
+			>
+			<button type="submit" class="search-button">
+				<span class="iconfont">&#xe664;</span>
+			</button>
+		</form>
+
+		<div id="result" class="result" style="display: none;">
+			<p><span id="generated-link" href=""></span></p>
+			<div class="button-container">
+				<div class="button" onclick="copyLink()" title="复制链接">
+					<span class="iconfont">&#xe60f;</span>
+				</div>
+				<div class="button" onclick="jumpToLink()" title="跳转">
+					<span class="iconfont">&#xe6ad;</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="tips">
+			<p>✨ 支持带协议头(https://)或不带的GitHub链接，更多用法见<a href="https://hunsh.net/archives/23/">文档说明</a></p>
+			<p>🚀 release、archive使用cf加速，文件会跳转至JsDelivr</p>
+			<p>⚠️ 注意：暂不支持文件夹下载</p>
+		</div>
+
+		<div class="example">
+			<div class="example-title">📃 合法输入示例：</div>
+			<p>📄 分支源码：<a href="https://github.com/hunshcn/project/archive/master.zip">https://github.com/hunshcn/project/archive/master.zip</a></p>
+			<p>📁 release源码：<a href="https://github.com/hunshcn/project/archive/v0.1.0.tar.gz">https://github.com/hunshcn/project/archive/v0.1.0.tar.gz</a></p>
+			<p>📂 release文件：<a href="https://github.com/hunshcn/project/releases/download/v0.1.0/example.zip">https://github.com/hunshcn/project/releases/download/v0.1.0/example.zip</a></p>
+			<p>💾 commit文件：<a href="https://github.com/hunshcn/project/blob/123/filename">https://github.com/hunshcn/project/blob/123/filename</a></p>
+			<p>🖨️ gist：<a href="https://gist.githubusercontent.com/cielpy/123/raw/cmd.py">https://gist.githubusercontent.com/cielpy/123/raw/cmd.py</a></p>
+		</div>
+
+		<p style="position: sticky;top: calc(100% - 2.5em);">
+			由 <a href="https://github.com/Geekertao/CF-Workers-GitHub-Proxy" target="_blank">CF-Workers-GitHub-Proxy</a> 
+			提供技术支持。
+			在 <a href="https://workers.cloudflare.com/" target="_blank">Cloudflare Workers</a> 
+			上运行。
+		</p>
+	</div>
+
+	<div id="notification" class="notification">
+		已复制！
+	</div>
+
+	<script>
+		function toSubmit(e) {
+			e.preventDefault();
+			const input = document.getElementsByName('q')[0];
+			let userInput = input.value;
+
+			// 去掉协议头
+			userInput = userInput.replace(/^https?:\/\//, '');
+
+			const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+			const generatedUrl = baseUrl + userInput;
+
+			// 显示生成的链接
+			document.getElementById('generated-link').href = generatedUrl;
+			document.getElementById('generated-link').textContent = generatedUrl;
+			document.getElementById('result').style.display = 'block';
+
+			// 清空输入框
+			input.value = '';
+		}
+
+		function copyLink() {
+			const link = document.getElementById('generated-link').href;
+			navigator.clipboard.writeText(link).then(() => {
+				showNotification();
+			}, (err) => {
+				console.error('复制失败:', err);
+			});
+		}
+
+		function jumpToLink() {
+			const link = document.getElementById('generated-link').href;
+			window.open(link, '_blank');
+		}
+
+		function showNotification() {
+			const notification = document.getElementById('notification');
+			notification.classList.add('show');
+			setTimeout(() => {
+				notification.classList.remove('show');
+			}, 3000);
+		}
+	</script>
+</body>
+</html>
