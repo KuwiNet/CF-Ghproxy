@@ -68,7 +68,7 @@
 			font-size: 2.5rem;
 			font-weight: 600;
 			margin-bottom: 1rem;
-			background: linear-gradient(45deg, #cdd5dd, #e2e8f0);
+			background: linear-gradient(45deg, #ffffff, #e2e8f0);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 		}
@@ -358,7 +358,7 @@
 				type="text" 
 				class="search-input"
 				name="q" 
-				placeholder="请输入 GitHub 文件链接"
+				placeholder="请输入 GitHub 链接"
 				pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
 				required
 			>
@@ -382,13 +382,13 @@
 		</div>
 
 		<div class="tips">
-			<p><span class="iconfont">&#xe603;</span> 支持带协议头【 https:// 】或不带的GitHub链接</p>
+			<p><span class="iconfont">&#xe6aa;</span> 支持带协议头 (https://) 或不带的GitHub链接</p>
 			<p><span class="iconfont">&#xe610;</span> 支持域名：</p>
 			<ul class="domain-list">
 				<li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
 				<li><span class="iconfont">&#xe6af;</span> gist.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> api.github.com</li>
 			</ul>
-			<p><span class="iconfont">&#xe67c;</span> release、archive使用 cf 加速，文件会跳转至 JsDelivr</p>
+			<p><span class="iconfont">&#xe67c;</span> Release、Archive使用 CF 加速，文件会跳转至 JsDelivr</p>
 			<p><span class="iconfont">&#xe610;</span>️ 支持 HTTPS Git Clone 
 			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持 SSH Git Clone 
 			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持文件夹下载</p>
@@ -435,7 +435,7 @@
 			const isValidDomain = validDomains.some(domain => userInput.startsWith(domain));
 		
 			if (!isValidDomain) {
-				showNotification('&#xe656;', ' 请输入Github链接');
+				showNotification('&#xe656;', '&nbsp;请输入Github链接');
 				input.value = '';
 				return;
 			}
@@ -455,7 +455,7 @@
 		function copyLink() {
 			const link = document.getElementById('generated-link').href;
 			navigator.clipboard.writeText(link).then(() => {
-				showNotification('&#xe63f;', ' 链接已复制');
+				showNotification('&#xe63f;', '&nbsp;链接已复制');
 			}, (err) => {
 				console.error('复制失败:', err);
 			});
