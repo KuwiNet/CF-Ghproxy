@@ -229,23 +229,25 @@
 			border: 1px solid rgba(255, 255, 255, 0.2);
 			position: relative;
 			min-height: 100px;
+			display: flex;
+			flex-direction: column;
 		}
 		
-		.result.retext {
+		.retext {
 			color: #FFFFFF;
 			text-decoration: none;
-			width: 90%;
-			text-align: left;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			word-break: break-word;
+			width: 100%;
 		}
 		
-		.result.retext p {
-			flex-grow: 1;
+		.retext p {
+			flex: 1;
 			max-width: 90%;
 			word-break: break-word;
+			overflow-wrap: break-word;
+			margin-right: 10px;
 		}
 
 		.result a {
