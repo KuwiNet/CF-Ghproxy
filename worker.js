@@ -23,6 +23,9 @@ const PREFLIGHT_INIT = {
     }),
 }
 
+// 新增仓库主页匹配正则
+const expRepo = /^(?:https?:\/\/)?github\.com\/[^/]+\/[^/]+(?=\/|$)/i
+
 const exp1 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:releases|archive)\/.*$/i
 const exp2 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:blob|raw)\/.*$/i
 const exp3 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:info|git-).*$/i
@@ -59,7 +62,7 @@ addEventListener('fetch', e => {
 })
 
 function checkUrl(u) {
-    for (let i of [exp1, exp2, exp3, exp4, exp5, exp6, exp7]) { // 新增exp7检查
+    for (let i of [expRepo, exp1, exp2, exp3, exp4, exp5, exp6, exp7]) { // 新增expRepo检查
         if (u.search(i) === 0) {
             return true
         }
@@ -83,6 +86,8 @@ async function fetchHandler(e) {
     
     if (path.search(exp7) === 0) { // 新增GitHub API处理
         return githubApiHandler(req, path)
+    } else if (path.search(expRepo) === 0) { // 新增仓库主页处理
+        return repoHandler(req, path)
     } else if (path.search(exp1) === 0 || path.search(exp5) === 0 || path.search(exp6) === 0 || path.search(exp3) === 0 || path.search(exp4) === 0) {
         return httpHandler(req, path)
     } else if (path.search(exp2) === 0) {
@@ -93,12 +98,53 @@ async function fetchHandler(e) {
             path = path.replace('/blob/', '/raw/')
             return httpHandler(req, path)
         }
-    } else if (path.search(exp4) === 0) {
-        const newUrl = path.replace(/(?<=com\/.+?\/.+?)\/(.+?\/)/, '@$1').replace(/^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com/, 'https://cdn.jsdelivr.net/gh')
-        return Response.redirect(newUrl, 302)
     } else {
         return fetch(ASSET_URL + path)
     }
+}
+
+/**
+ * 处理仓库主页请求
+ * @param {Request} req
+ * @param {string} pathname
+ */
+function repoHandler(req, pathname) {
+    const reqHdrRaw = req.headers
+
+    // preflight
+    if (req.method === 'OPTIONS' &&
+        reqHdrRaw.has('access-control-request-headers')
+    ) {
+        return new Response(null, PREFLIGHT_INIT)
+    }
+
+    const reqHdrNew = new Headers(reqHdrRaw)
+
+    let urlStr = pathname
+    let flag = !Boolean(whiteList.length)
+    for (let i of whiteList) {
+        if (urlStr.includes(i)) {
+            flag = true
+            break
+        }
+    }
+    if (!flag) {
+        return new Response("blocked", {status: 403})
+    }
+    if (urlStr.search(/^https?:\/\//) !== 0) {
+        urlStr = 'https://' + urlStr
+    }
+    // 不再重定向到README.md，直接代理到仓库主页
+    const urlObj = newUrl(urlStr)
+
+    /** @type {RequestInit} */
+    const reqInit = {
+        method: req.method,
+        headers: reqHdrNew,
+        redirect: 'manual',
+        body: req.body
+    }
+    return proxy(urlObj, reqInit)
 }
 
 /**
