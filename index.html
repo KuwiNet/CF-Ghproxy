@@ -230,6 +230,17 @@
 			position: relative;
 			min-height: 100px;
 		}
+		
+		.result.retext {
+			color: #FFFFFF;
+			text-decoration: none;
+			width: 90%;
+			text-align: left;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			word-break: break-word;
+		}
 
 		.result a {
 			color: #FFFFFF;
@@ -328,7 +339,7 @@
 		</form>
 
 		<div id="result" class="result" style="display: none;">
-			<p><span id="generated-link"></span></p>
+			<p class="retext"><span id="generated-link"></span></p>
 			<div class="button-container">
 				<div class="button" onclick="copyLink()" title="复制链接">
 					<span class="iconfont">&#xe60f;</span>
