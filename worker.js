@@ -23,7 +23,6 @@ const PREFLIGHT_INIT = {
     }),
 }
 
-// 新增仓库主页匹配正则
 const expRepo = /^(?:https?:\/\/)?github\.com\/[^/]+\/[^/]+(?=\/|$)/i
 
 const exp1 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:releases|archive)\/.*$/i
@@ -32,7 +31,7 @@ const exp3 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:info|git-).*$/i
 const exp4 = /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/.+?\/.+?\/.+?\/.+$/i
 const exp5 = /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/.+?\/.+?\/.+$/i
 const exp6 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/tags.*$/i
-const exp7 = /^(?:https?:\/\/)?api\.github\.com\/.*$/i // 新增GitHub API支持
+const exp7 = /^(?:https?:\/\/)?api\.github\.com\/.*$/i 
 
 /**
  * @param {any} body
@@ -84,9 +83,9 @@ async function fetchHandler(e) {
     // cfworker 会把路径中的 `//` 合并成 `/`
     path = urlObj.href.substr(urlObj.origin.length + PREFIX.length).replace(/^https?:\/+/, 'https://')
     
-    if (path.search(exp7) === 0) { // 新增GitHub API处理
+    if (path.search(exp7) === 0) { 
         return githubApiHandler(req, path)
-    } else if (path.search(expRepo) === 0) { // 新增仓库主页处理
+    } else if (path.search(expRepo) === 0) { 
         return repoHandler(req, path)
     } else if (path.search(exp1) === 0 || path.search(exp5) === 0 || path.search(exp6) === 0 || path.search(exp3) === 0 || path.search(exp4) === 0) {
         return httpHandler(req, path)
@@ -134,7 +133,7 @@ function repoHandler(req, pathname) {
     if (urlStr.search(/^https?:\/\//) !== 0) {
         urlStr = 'https://' + urlStr
     }
-    // 不再重定向到README.md，直接代理到仓库主页
+    
     const urlObj = newUrl(urlStr)
 
     /** @type {RequestInit} */
