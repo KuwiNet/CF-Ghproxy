@@ -420,7 +420,7 @@
 			const isValidDomain = validDomains.some(domain => userInput.startsWith(domain));
 		
 			if (!isValidDomain) {
-				showNotification('&#xe656;', '请输入Github链接');
+				showNotification('&#xe656;', ' 请输入Github链接');
 				input.value = '';
 				return;
 			}
@@ -440,7 +440,7 @@
 		function copyLink() {
 			const link = document.getElementById('generated-link').href;
 			navigator.clipboard.writeText(link).then(() => {
-				showNotification('&#xe63f;', '链接已复制');
+				showNotification('&#xe63f;', ' 链接已复制');
 			}, (err) => {
 				console.error('复制失败:', err);
 			});
