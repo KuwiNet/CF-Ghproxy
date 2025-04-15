@@ -241,6 +241,12 @@
 			align-items: center;
 			word-break: break-word;
 		}
+		
+		.result.retext p {
+			flex-grow: 1;
+			max-width: 90%;
+			word-break: break-word;
+		}
 
 		.result a {
 			color: #FFFFFF;
@@ -339,7 +345,9 @@
 		</form>
 
 		<div id="result" class="result" style="display: none;">
-			<p><span id="generated-link"></span></p>
+			<div class="retext">
+				<p><span id="generated-link"></span></p>
+			</div>
 			<div class="button-container">
 				<div class="button" onclick="copyLink()" title="复制链接">
 					<span class="iconfont">&#xe60f;</span>
