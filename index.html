@@ -204,18 +204,27 @@
 			}
 
 			.result {
-				padding: 1rem;
-				min-height: 100px;
+				flex-direction: column;
 			}
-
+			
+			.retext {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+			
+			.retext p {
+				width: 100%;
+				margin-right: 0;
+				margin-bottom: 10px;
+			}
+			
 			.result a {
 				word-break: break-word;
 			}
 
 			.button-container {
-				flex-direction: column;
 				position: static;
-				margin-top: 10px;
+				align-self: flex-end;
 			}
 		}
 
