@@ -23,38 +23,38 @@
 ### 仓库主页
 
 ```plaintext
-https://ghx.pp.ua/github.com/user/repo
+https://arelay.cn/github.com/user/repo
 ```
 
 ### Release 文件
 ```plaintext
-https://ghx.pp.ua/github.com/user/repo/releases/download/v1.0.0/app.zip
+https://arelay.cn/github.com/user/repo/releases/download/v1.0.0/app.zip
 ```
 
 ### 原始文件
 ```plaintext
-https://ghx.pp.ua/raw.githubusercontent.com/user/repo/main/file.txt
+https://arelay.cn/raw.githubusercontent.com/user/repo/main/file.txt
 ```
 
 ### Git 克隆
 ```plaintext
-git clone https://ghx.pp.ua/github.com/user/project.git
+git clone https://arelay.cn/github.com/user/project.git
 ```
 
 ### Gist 文件
 ```plaintext
-https://ghx.pp.ua/gist.githubusercontent.com/user/gist_id/raw/file.txt
+https://arelay.cn/gist.githubusercontent.com/user/gist_id/raw/file.txt
 ```
 
 ### GitHub API
 ```plaintext
-https://ghx.pp.ua/api.github.com/repos/fatedier/frp/releases/latest
+https://arelay.cn/api.github.com/repos/fatedier/frp/releases/latest
 ```
 
 ## 配置说明
 
 ### 基本配置
-- `ASSET_URL`：静态文件的 URL，通常不需要修改。
+- `ASSET_URL`：静态文件的 URL，通常不需要修改，也可修改成自己的 URL 。
 
 - `PREFIX`：自定义路由前缀，例如 `/gh/`。注意，少一个杠都会导致错误。
 
@@ -65,7 +65,7 @@ https://ghx.pp.ua/api.github.com/repos/fatedier/frp/releases/latest
 ### 示例配置
 
 ```JavaScript
-const ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
+const ASSET_URL = 'https://kuwinet.github.io/git-proxy/'
 const PREFIX = '/gh/'
 const Config = {
     jsdelivr: 0
