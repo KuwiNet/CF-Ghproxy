@@ -65,7 +65,7 @@ https://arelay.cn/api.github.com/repos/fatedier/frp/releases/latest
 ### 示例配置
 
 ```JavaScript
-const ASSET_URL = 'https://kuwinet.github.io/git-proxy/'
+const ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 const PREFIX = '/gh/'
 const Config = {
     jsdelivr: 0
