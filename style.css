@@ -25,7 +25,7 @@ body {
 .container {
 	width: 100%;
 	max-width: 900px !important;
-	padding: 80px 20px;
+	padding: 98px 20px;
 	text-align: center;
 }
 
@@ -154,7 +154,7 @@ body {
 
 @media (max-width: 640px) {
 	.container {
-		padding: 100px 20px;
+		padding: 98px 20px;
 		min-height: 60vh;
 	}
 
