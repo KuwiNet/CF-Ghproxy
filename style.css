@@ -290,7 +290,7 @@ body {
 
 .notification {
 	position: fixed;
-	top: 80px;
+	top: 70px;
 	left: 50%;
 	transform: translateX(-50%);
 	background: rgba(70, 0, 106, 0.9);
