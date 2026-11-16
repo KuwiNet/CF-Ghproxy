@@ -65,6 +65,7 @@ wrangler deploy          # 读取仓库里的 wrangler.toml
 | 变量 | 默认 | 说明 |
 | --- | --- | --- |
 | `PREFIX` | `/` | 路由前缀。挂在 `example.com/gh/*` 时设为 `/gh/` |
+| `PUBLIC_HOST` | 空 | 对外域名（如 `arelay.cn`）。前面挂 EdgeOne / 其它 CDN 时填，`301` 跳转与 API `Link` 分页头都会改写成它，不再把回源域名暴露给客户端；留空则用回源 Host |
 | `ASSET_URL` | `https://kuwinet.github.io/CF-Ghproxy/` | 未匹配路径回退的静态站点 |
 | `WHITELIST` | 空 | 白名单，逗号分隔；非空时路径必须命中其中片段 |
 | `JSDELIVR` | `0` | `1` 时 `/blob/` 请求改为跳转 jsDelivr CDN |
@@ -91,6 +92,7 @@ python3 test/smoke.py https://gh.example.com
 
 ## 版本
 
+- `2.1.0` — 新增 `PUBLIC_HOST`：前置 EdgeOne / CDN 时 `301` 与 API `Link` 头改写为对外域名，`/_health` 回显 `base`。
 - `2.0.0` — module 语法；下载类请求内部跟随重定向；修复 API 分页导致 502；路径解析重写；统一错误与 CORS。
 - `1.0` — 初版（gh-proxy 模板）。
 

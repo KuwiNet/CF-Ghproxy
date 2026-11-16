@@ -15,10 +15,12 @@
  *      改为透传分页并重写 Link 头，客户端可自行翻页。
  *   4. 修正路径解析：查询串、// 折叠、PREFIX 前缀、https:// 前缀都能正确还原。
  *   5. 统一错误响应（502 JSON + CORS），补全 OPTIONS 预检、HEAD 支持。
- *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / MAX_REDIRECT。
+ *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / PUBLIC_HOST / MAX_REDIRECT。
  *
  * 环境变量：
  *   PREFIX       路由前缀，默认 "/"。若自定义路由为 example.com/gh/* 则设为 "/gh/"
+ *   PUBLIC_HOST  对外域名（前置 EdgeOne 等 CDN 时填，例如 arelay.cn）。填写后 301 跳转与
+ *                API 的 Link 头都改写为对外域名，不再把回源域名暴露给客户端；留空则用回源 Host。
  *   ASSET_URL    未匹配路径时回退的静态站点地址
  *   WHITELIST    白名单，逗号分隔；非空时只有路径命中其中片段才放行
  *   JSDELIVR     设为 1 时，/blob/ 请求改为跳转 jsDelivr CDN
@@ -74,12 +76,24 @@ const RULES = [
 function loadConfig(env) {
 	const e = env || {}
 	return {
+		publicHost: (e.PUBLIC_HOST || '').trim(),
 		prefix: e.PREFIX || DEFAULT_PREFIX,
 		assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
 		whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
 		jsdelivr: String(e.JSDELIVR || '0') === '1',
 		maxRedirect: Number(e.MAX_REDIRECT) > 0 ? Number(e.MAX_REDIRECT) : 5,
 	}
+}
+
+/** 对外基地址：PUBLIC_HOST 有值时固定用它（前置 CDN 时不暴露回源域名），否则用回源 Host */
+function selfBase(url, cfg) {
+	const prefix = cfg.prefix.replace(/\/$/, '')
+	if (cfg.publicHost) {
+		const raw = cfg.publicHost.replace(/\/$/, '')
+		const origin = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw
+		return origin + prefix
+	}
+	return url.origin + prefix
 }
 
 function corsHeaders(extra) {
@@ -230,14 +244,14 @@ export default {
 		}
 
 		if (url.pathname === '/_health' || url.pathname === '/healthz') {
-			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', time: new Date().toISOString() })
+			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', base: selfBase(url, cfg), time: new Date().toISOString() })
 		}
 
 		// ?q=https://github.com/... 形式，301 到标准路径
 		const q = url.searchParams.get('q')
 		if (q && (url.pathname === '/' || url.pathname === cfg.prefix || url.pathname === cfg.prefix.replace(/\/$/, ''))) {
 			const target = q.replace(/^https?:\/\//, '')
-			return Response.redirect(url.origin + cfg.prefix.replace(/\/$/, '') + '/' + target, 301)
+			return Response.redirect(selfBase(url, cfg) + '/' + target, 301)
 		}
 
 		const target = resolveTarget(url.pathname, url.search, cfg.prefix)
@@ -283,7 +297,7 @@ export default {
 				const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
 				const extra = {}
 				const link = res.headers.get('link')
-				if (link) extra['link'] = rewriteLinkHeader(link, url.origin + cfg.prefix.replace(/\/$/, ''))
+				if (link) extra['link'] = rewriteLinkHeader(link, selfBase(url, cfg))
 				return finalize(res, { extra })
 			}
 
