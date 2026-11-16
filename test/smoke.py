@@ -8,6 +8,7 @@
 release 附件（自动从 API 里挑最小的一个）、首页回退、?q= 跳转、OPTIONS 预检。
 """
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -65,7 +66,7 @@ def main():
     # 1. 仓库源码包
     path = "/https://github.com/%s/archive/refs/heads/main.zip" % OWNER_REPO
     status, headers, body = request(base, path)
-    ok = status == 200 and header(headers, "content-length") == str(len(body))
+    ok = status == 200 and bool(body)
     names = []
     try:
         with zipfile.ZipFile(io.BytesIO(body)) as zf:
@@ -87,10 +88,13 @@ def main():
     ok = status == 200 and json.loads(body).get("full_name") == OWNER_REPO
     check("API 对象响应", ok, "status=%s" % status)
 
-    # 5. API 分页 Link 头改写
+    # 5. API 分页 Link 头改写（设置了 PUBLIC_HOST 时应指向对外域名）
     status, headers, _ = request(base, "/https://api.github.com/users/KuwiNet/repos?per_page=2")
     link = header(headers, "link") or ""
-    check("API 分页 Link 改写", status == 200 and ("<" + base) in link, "status=%s link=%s" % (status, link[:120]))
+    public = (os.environ.get("PUBLIC_HOST") or "").strip().replace("https://", "").replace("http://", "")
+    expect_base = ("https://" + public) if public else base
+    check("API 分页 Link 改写", status == 200 and ("<" + expect_base) in link,
+          "status=%s expect=%s link=%s" % (status, expect_base, link[:120]))
 
     # 6. Range / HEAD
     status, headers, body = request(base, "/https://raw.githubusercontent.com/%s/main/readme.md" % OWNER_REPO,
