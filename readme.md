@@ -70,6 +70,7 @@ wrangler deploy          # 读取仓库里的 wrangler.toml
 | `WHITELIST` | 空 | 白名单，逗号分隔；非空时路径必须命中其中片段 |
 | `JSDELIVR` | `0` | `1` 时 `/blob/` 请求改为跳转 jsDelivr CDN |
 | `MAX_REDIRECT` | `5` | 内部跟随重定向的最大跳数 |
+| `GH_TOKEN` | 空 | GitHub Personal Access Token（建议只读）。仅在客户端未自带 `Authorization` 时，用于转发 `api.github.com` 的认证，把匿名 60 次/小时提到 5000 次/小时；只注入 API 请求，下载类请求不带它。放面板 Secret 或 `wrangler secret put GH_TOKEN`，不要写进仓库 |
 
 ## 自检
 
@@ -86,12 +87,14 @@ python3 test/smoke.py https://gh.example.com
   在 `Domains & Routes` 里绑 Custom Domain，并确认没有冲突的 DNS 记录。
 - **下载大文件中断**：`wrangler.toml` 里已开启 `observability`，可在 `Workers Logs` 里看 CPU/时长；
   免费版单请求有 CPU 限制，持续大流量建议把 `ASSET_URL` 静态托管与 Worker 分开或升级套餐。
-- **`api.github.com` 403**：GitHub API 未认证时限额很低。请求里带 `Authorization: Bearer <token>` 会被透传，
-  也可以用 `wrangler secret put` 注入固定 token（需要自行在代码里读取环境变量）。
+- **`api.github.com` 403**：GitHub API 未认证时限额只有 60 次/小时。客户端自带 `Authorization` 会被优先透传；
+  否则若配置了 `GH_TOKEN`（面板 Secrets 或 `wrangler secret put GH_TOKEN`），Worker 会自动注入该 token。
 - **私有仓库**：`Authorization` 头会透传，`git clone` 走 401 后由客户端带凭据重试即可。
 
 ## 版本
 
+- `2.1.1` — 新增 `GH_TOKEN`：客户端未自带 `Authorization` 时，转发 `api.github.com` 自动注入该 token，
+  把匿名 API 限流从 60 次/小时提到 5000 次/小时；下载类请求不注入，避免与签名 URL 冲突。
 - `2.1.0` — 新增 `PUBLIC_HOST`：前置 EdgeOne / CDN 时 `301` 与 API `Link` 头改写为对外域名，`/_health` 回显 `base`。
 - `2.0.0` — module 语法；下载类请求内部跟随重定向；修复 API 分页导致 502；路径解析重写；统一错误与 CORS。
 - `1.0` — 初版（gh-proxy 模板）。

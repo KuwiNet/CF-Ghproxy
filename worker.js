@@ -21,6 +21,9 @@
  *   PREFIX       路由前缀，默认 "/"。若自定义路由为 example.com/gh/* 则设为 "/gh/"
  *   PUBLIC_HOST  对外域名（前置 EdgeOne 等 CDN 时填，例如 arelay.cn）。填写后 301 跳转与
  *                API 的 Link 头都改写为对外域名，不再把回源域名暴露给客户端；留空则用回源 Host。
+ *   GH_TOKEN     GitHub Personal Access Token（可选，建议只读权限）。客户端未自带 Authorization
+ *                时，转发 api.github.com 用它认证，把 60 次/小时的匿名 API 限流提到 5000 次/小时。
+ *                只对 api.github.com 注入，下载类请求绝不带它（避免与签名 URL 冲突）。
  *   ASSET_URL    未匹配路径时回退的静态站点地址
  *   WHITELIST    白名单，逗号分隔；非空时只有路径命中其中片段才放行
  *   JSDELIVR     设为 1 时，/blob/ 请求改为跳转 jsDelivr CDN
@@ -77,6 +80,7 @@ function loadConfig(env) {
 	const e = env || {}
 	return {
 		publicHost: (e.PUBLIC_HOST || '').trim(),
+		ghToken: (e.GH_TOKEN || '').trim(),
 		prefix: e.PREFIX || DEFAULT_PREFIX,
 		assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
 		whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
@@ -294,7 +298,13 @@ export default {
 
 		try {
 			if (rule.api) {
-				const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+				// 客户端自己带了 Authorization 就尊重它；否则用 GH_TOKEN 认证，绕开 60 次/小时的匿名限流
+				let apiHeaders = init.headers
+				if (cfg.ghToken && !apiHeaders.has('authorization')) {
+					apiHeaders = new Headers(apiHeaders)
+					apiHeaders.set('authorization', 'Bearer ' + cfg.ghToken)
+				}
+				const res = await fetch(urlObj.href, { method, headers: apiHeaders, body: init.body, redirect: 'manual' })
 				const extra = {}
 				const link = res.headers.get('link')
 				if (link) extra['link'] = rewriteLinkHeader(link, selfBase(url, cfg))
