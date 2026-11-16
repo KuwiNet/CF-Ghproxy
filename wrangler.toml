@@ -22,4 +22,5 @@ enabled = true
 # WHITELIST = "/KuwiNet/"
 # JSDELIVR = "1"
 # MAX_REDIRECT = "5"
-# PUBLIC_HOST = "arelay.cn"   # 前置 EdgeOne 等 CDN 时填对外域名，301 与 API Link 头会改写成它
+# 前置 EdgeOne 等 CDN 时填对外域名，301 与 API Link 头会改写成它
+PUBLIC_HOST = "arelay.cn"
