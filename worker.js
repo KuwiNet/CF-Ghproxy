@@ -1,308 +1,311 @@
-'use strict'
-
 /**
- * static files (404.html, sw.js, conf.js)
- */
-const ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
-// 前缀，如果自定义路由为example.com/gh/*，将PREFIX改为 '/gh/'，注意，少一个杠都会出错！
-const PREFIX = '/'
-// 分支文件使用jsDelivr镜像的开关，0为关闭，默认关闭
-const Config = {
-    jsdelivr: 0
-}
-
-const whiteList = [] // 白名单，路径里面有包含字符的才会通过，e.g. ['/username/']
-
-/** @type {ResponseInit} */
-const PREFLIGHT_INIT = {
-    status: 204,
-    headers: new Headers({
-        'access-control-allow-origin': '*',
-        'access-control-allow-methods': 'GET,POST,PUT,PATCH,TRACE,DELETE,HEAD,OPTIONS',
-        'access-control-max-age': '1728000',
-    }),
-}
-
-const expRepo = /^(?:https?:\/\/)?github\.com\/[^/]+\/[^/]+(?=\/|$)/i
-
-const exp1 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:releases|archive)\/.*$/i
-const exp2 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:blob|raw)\/.*$/i
-const exp3 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:info|git-).*$/i
-const exp4 = /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/.+?\/.+?\/.+?\/.+$/i
-const exp5 = /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/.+?\/.+?\/.+$/i
-const exp6 = /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/tags.*$/i
-const exp7 = /^(?:https?:\/\/)?api\.github\.com\/.*$/i 
-
-/**
- * @param {any} body
- * @param {number} status
- * @param {Object<string, string>} headers
- */
-function makeRes(body, status = 200, headers = {}) {
-    headers['access-control-allow-origin'] = '*'
-    return new Response(body, {status, headers})
-}
-
-/**
- * @param {string} urlStr
- */
-function newUrl(urlStr) {
-    try {
-        return new URL(urlStr)
-    } catch (err) {
-        return null
-    }
-}
-
-addEventListener('fetch', e => {
-    const ret = fetchHandler(e)
-        .catch(err => makeRes('cfworker error:\n' + err.stack, 502))
-    e.respondWith(ret)
-})
-
-function checkUrl(u) {
-    for (let i of [expRepo, exp1, exp2, exp3, exp4, exp5, exp6, exp7]) { 
-        if (u.search(i) === 0) {
-            return true
-        }
-    }
-    return false
-}
-
-/**
- * @param {FetchEvent} e
- */
-async function fetchHandler(e) {
-    const req = e.request
-    const urlStr = req.url
-    const urlObj = new URL(urlStr)
-    let path = urlObj.searchParams.get('q')
-    if (path) {
-        return Response.redirect('https://' + urlObj.host + PREFIX + path, 301)
-    }
-    // cfworker 会把路径中的 `//` 合并成 `/`
-    path = urlObj.href.substr(urlObj.origin.length + PREFIX.length).replace(/^https?:\/+/, 'https://')
-    
-    if (path.search(exp7) === 0) { 
-        return githubApiHandler(req, path)
-    } else if (path.search(expRepo) === 0) { 
-        return repoHandler(req, path)
-    } else if (path.search(exp1) === 0 || path.search(exp5) === 0 || path.search(exp6) === 0 || path.search(exp3) === 0 || path.search(exp4) === 0) {
-        return httpHandler(req, path)
-    } else if (path.search(exp2) === 0) {
-        if (Config.jsdelivr) {
-            const newUrl = path.replace('/blob/', '@').replace(/^(?:https?:\/\/)?github\.com/, 'https://cdn.jsdelivr.net/gh')
-            return Response.redirect(newUrl, 302)
-        } else {
-            path = path.replace('/blob/', '/raw/')
-            return httpHandler(req, path)
-        }
-    } else {
-        return fetch(ASSET_URL + path)
-    }
-}
-
-/**
- * 处理仓库主页请求
- * @param {Request} req
- * @param {string} pathname
- */
-function repoHandler(req, pathname) {
-    const reqHdrRaw = req.headers
-
-    // preflight
-    if (req.method === 'OPTIONS' &&
-        reqHdrRaw.has('access-control-request-headers')
-    ) {
-        return new Response(null, PREFLIGHT_INIT)
-    }
-
-    const reqHdrNew = new Headers(reqHdrRaw)
-
-    let urlStr = pathname
-    let flag = !Boolean(whiteList.length)
-    for (let i of whiteList) {
-        if (urlStr.includes(i)) {
-            flag = true
-            break
-        }
-    }
-    if (!flag) {
-        return new Response("blocked", {status: 403})
-    }
-    if (urlStr.search(/^https?:\/\//) !== 0) {
-        urlStr = 'https://' + urlStr
-    }
-    
-    const urlObj = newUrl(urlStr)
-
-    /** @type {RequestInit} */
-    const reqInit = {
-        method: req.method,
-        headers: reqHdrNew,
-        redirect: 'manual',
-        body: req.body
-    }
-    return proxy(urlObj, reqInit)
-}
-
-/**
- * @param {Request} req
- * @param {string} pathname
- */
-function httpHandler(req, pathname) {
-    const reqHdrRaw = req.headers
-
-    // preflight
-    if (req.method === 'OPTIONS' &&
-        reqHdrRaw.has('access-control-request-headers')
-    ) {
-        return new Response(null, PREFLIGHT_INIT)
-    }
-
-    const reqHdrNew = new Headers(reqHdrRaw)
-
-    let urlStr = pathname
-    let flag = !Boolean(whiteList.length)
-    for (let i of whiteList) {
-        if (urlStr.includes(i)) {
-            flag = true
-            break
-        }
-    }
-    if (!flag) {
-        return new Response("blocked", {status: 403})
-    }
-    if (urlStr.search(/^https?:\/\//) !== 0) {
-        urlStr = 'https://' + urlStr
-    }
-    const urlObj = newUrl(urlStr)
-
-    /** @type {RequestInit} */
-    const reqInit = {
-        method: req.method,
-        headers: reqHdrNew,
-        redirect: 'manual',
-        body: req.body
-    }
-    return proxy(urlObj, reqInit)
-}
-
-/**
- * 处理GitHub API请求
- * @param {Request} req
- * @param {string} pathname
- */
-function githubApiHandler(req, pathname) {
-    const reqHdrRaw = req.headers
-
-    // preflight
-    if (req.method === 'OPTIONS' &&
-        reqHdrRaw.has('access-control-request-headers')
-    ) {
-        return new Response(null, PREFLIGHT_INIT)
-    }
-
-    const reqHdrNew = new Headers(reqHdrRaw)
-
-    let urlStr = pathname
-    if (urlStr.search(/^https?:\/\//) !== 0) {
-        urlStr = 'https://' + urlStr
-    }
-    const urlObj = newUrl(urlStr)
-
-    const reqInit = {
-        method: req.method,
-        headers: reqHdrNew,
-        redirect: 'manual',
-        body: req.body
-    }
-
-    return fetch(urlObj.href, reqInit)
-        .then(res => {
-            // 处理分页
-            if (res.headers.has('Link') && res.headers.get('Link').includes('rel="next"')) {
-                return handlePagination(res)
-            }
-            return formatResponse(res)
-        })
-        .catch(err => makeRes('GitHub API error:\n' + err.message, 502))
-}
-
-/**
- * 处理GitHub API分页
- * @param {Response} res
- */
-async function handlePagination(res) {
-    const data = await res.json()
-    const linkHeader = res.headers.get('Link')
-    const pages = parseLinkHeader(linkHeader)
-    let allData = [...data]
-
-    if (pages.next) {
-        const nextPageData = await fetch(pages.next)
-        const nextPageJson = await nextPageData.json()
-        allData = [...allData, ...nextPageJson]
-    }
-
-    if (pages.last && pages.last !== pages.next) {
-        const lastPageData = await fetch(pages.last)
-        const lastPageJson = await lastPageData.json()
-        allData = [...allData, ...lastPageJson]
-    }
-
-    return formatResponse(new Response(JSON.stringify(allData), {
-        status: res.status,
-        headers: res.headers
-    }))
-}
-
-/**
- * 解析Link Header
- * @param {string} linkHeader
- * @returns {{next: string, last: string}}
- */
-function parseLinkHeader(linkHeader) {
-    const links = {}
-    if (!linkHeader) return links
-
-    linkHeader.split(',').forEach(link => {
-        const parts = link.split(';')
-        const url = parts[0].replace(/<|>/g, '').trim()
-        const rel = parts[1].replace('rel=', '').replace(/"/g, '').trim()
-        links[rel] = url
-    })
-
-    return links
-}
-
-/**
- * 格式化响应
- * @param {Response} res
- */
-function formatResponse(res) {
-    const resHdrOld = res.headers
-    const resHdrNew = new Headers(resHdrOld)
-
-    resHdrNew.set('access-control-expose-headers', '*')
-    resHdrNew.set('access-control-allow-origin', '*')
-
-    resHdrNew.delete('content-security-policy')
-    resHdrNew.delete('content-security-policy-report-only')
-    resHdrNew.delete('clear-site-data')
-
-    return new Response(res.body, {
-        status: res.status,
-        headers: resHdrNew,
-    })
-}
-
-/**
+ * CF-Ghproxy — GitHub 文件加速代理（Cloudflare Workers，module 语法）
  *
- * @param {URL} urlObj
- * @param {RequestInit} reqInit
+ * 用法：把原始地址放在本 Worker 域名之后即可，例如
+ *   https://gh.example.com/KuwiNet/ZWRT/archive/refs/heads/main.zip
+ *   https://gh.example.com/https://github.com/KuwiNet/ZWRT/releases/download/v1/x.ipk
+ *   https://gh.example.com/https://raw.githubusercontent.com/KuwiNet/ZWRT/main/README.md
+ *   https://gh.example.com/https://api.github.com/repos/KuwiNet/ZWRT
+ *
+ * 相对 v1 的改动：
+ *   1. 改为 module 语法（export default fetch），与 wrangler / Workers 新编辑器一致。
+ *   2. 下载类请求（archive / releases / raw / codeload / objects）在 Worker 内部跟随重定向，
+ *      直接把文件流回客户端，不再让客户端自己去访问 codeload（国内经常连不上）。
+ *   3. 去掉错误的 API 分页“合并”逻辑（原实现对返回对象会抛 TypeError 直接 502），
+ *      改为透传分页并重写 Link 头，客户端可自行翻页。
+ *   4. 修正路径解析：查询串、// 折叠、PREFIX 前缀、https:// 前缀都能正确还原。
+ *   5. 统一错误响应（502 JSON + CORS），补全 OPTIONS 预检、HEAD 支持。
+ *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / MAX_REDIRECT。
+ *
+ * 环境变量：
+ *   PREFIX       路由前缀，默认 "/"。若自定义路由为 example.com/gh/* 则设为 "/gh/"
+ *   ASSET_URL    未匹配路径时回退的静态站点地址
+ *   WHITELIST    白名单，逗号分隔；非空时只有路径命中其中片段才放行
+ *   JSDELIVR     设为 1 时，/blob/ 请求改为跳转 jsDelivr CDN
+ *   MAX_REDIRECT 内部跟随重定向的最大跳数，默认 5
  */
-async function proxy(urlObj, reqInit) {
-    const res = await fetch(urlObj.href, reqInit)
-    return formatResponse(res)
+
+const DEFAULT_PREFIX = '/'
+const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
+
+/** 逐跳头，转发前剔除 */
+const HOP_BY_HOP = new Set([
+	'connection',
+	'keep-alive',
+	'proxy-authenticate',
+	'proxy-authorization',
+	'te',
+	'trailer',
+	'transfer-encoding',
+	'upgrade',
+])
+
+const PASSTHROUGH_HEADERS = [
+	'accept',
+	'accept-language',
+	'authorization',
+	'user-agent',
+	'range',
+	'if-range',
+	'if-none-match',
+	'if-modified-since',
+	'cache-control',
+]
+
+/** 路径 -> 处理策略
+ *  follow: 在 Worker 内跟随重定向并把内容流回客户端（适合二进制下载）
+ *  api:    GitHub API，透传并重写 Link 头
+ *  html:   普通仓库页面，原样转发（含 302）
+ */
+const RULES = [
+	{ name: 'repo-archive', re: /^github\.com\/([^/]+)\/([^/]+)\/(releases|archive)\//i, follow: true },
+	{ name: 'repo-raw', re: /^github\.com\/([^/]+)\/([^/]+)\/(blob|raw)\//i, follow: true, blobToRaw: true },
+	{ name: 'repo-git', re: /^github\.com\/([^/]+)\/([^/]+)\/(info|git-)/i, follow: true },
+	{ name: 'repo-tags', re: /^github\.com\/([^/]+)\/([^/]+)\/tags/i, follow: true },
+	{ name: 'raw', re: /^raw\.(?:githubusercontent|github)\.com\//i, follow: true },
+	{ name: 'gist-raw', re: /^gist\.(?:githubusercontent|github)\.com\//i, follow: true },
+	{ name: 'codeload', re: /^codeload\.github\.com\//i, follow: true },
+	{ name: 'objects', re: /^objects\.githubusercontent\.com\//i, follow: true },
+	{ name: 'release-asset', re: /^release-assets\.githubusercontent\.com\//i, follow: true },
+	{ name: 'api', re: /^api\.github\.com\//i, api: true },
+	{ name: 'repo-page', re: /^github\.com\/([^/]+)\/([^/]+)(\/.*)?$/i, page: true },
+]
+
+function loadConfig(env) {
+	const e = env || {}
+	return {
+		prefix: e.PREFIX || DEFAULT_PREFIX,
+		assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
+		whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
+		jsdelivr: String(e.JSDELIVR || '0') === '1',
+		maxRedirect: Number(e.MAX_REDIRECT) > 0 ? Number(e.MAX_REDIRECT) : 5,
+	}
+}
+
+function corsHeaders(extra) {
+	const h = new Headers(extra || {})
+	h.set('access-control-allow-origin', '*')
+	h.set('access-control-expose-headers', '*')
+	return h
+}
+
+function makeRes(body, status = 200, headers = {}) {
+	return new Response(body, { status, headers: corsHeaders(headers) })
+}
+
+function jsonRes(obj, status = 200, headers = {}) {
+	return makeRes(JSON.stringify(obj), status, Object.assign({ 'content-type': 'application/json; charset=utf-8' }, headers))
+}
+
+function preflight() {
+	return new Response(null, {
+		status: 204,
+		headers: {
+			'access-control-allow-origin': '*',
+			'access-control-allow-methods': 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS',
+			'access-control-allow-headers': '*',
+			'access-control-max-age': '1728000',
+		},
+	})
+}
+
+/** 把请求路径还原成待访问的原始地址（含查询串） */
+function resolveTarget(pathname, search, prefix) {
+	let p = pathname || '/'
+	if (prefix && prefix !== '/' && p.startsWith(prefix)) p = p.slice(prefix.length)
+	else if (p.startsWith('/')) p = p.slice(1)
+	// CF 会把路径里的 // 折叠成 /，这里补回来
+	p = p.replace(/^(https?):\/+/, '$1://')
+	if (search) p += search
+	// 短写法：/owner/repo/archive/... 自动补成 github.com/owner/repo/archive/...
+	if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
+		if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-)/i.test(p)) {
+			p = 'github.com/' + p
+		}
+	}
+	return p
+}
+
+/** 匹配处理规则 */
+function matchRule(target) {
+	for (const rule of RULES) {
+		const m = rule.re.exec(target)
+		if (m) return { rule, match: m }
+	}
+	return null
+}
+
+function buildUpstreamHeaders(request) {
+	const headers = new Headers()
+	for (const name of PASSTHROUGH_HEADERS) {
+		const v = request.headers.get(name)
+		if (v) headers.set(name, v)
+	}
+	// 强制 identity，避免 CF 自动解压导致 content-length 与实际字节数不一致
+	headers.set('accept-encoding', 'identity')
+	return headers
+}
+
+/** 组装响应：剔除逐跳头，补 CORS，去掉碍事的 CSP */
+function finalize(res, opts = {}) {
+	const headers = new Headers()
+	for (const [k, v] of res.headers) {
+		if (HOP_BY_HOP.has(k.toLowerCase())) continue
+		headers.set(k, v)
+	}
+	headers.delete('content-security-policy')
+	headers.delete('content-security-policy-report-only')
+	headers.delete('clear-site-data')
+	headers.delete('set-cookie')
+	headers.set('access-control-allow-origin', '*')
+	headers.set('access-control-expose-headers', '*')
+	if (opts.extra) for (const [k, v] of Object.entries(opts.extra)) headers.set(k, v)
+	return new Response(res.body, { status: res.status, headers })
+}
+
+/** 内部跟随重定向；跨主机时保留 Range，丢弃 Authorization 以外的敏感头 */
+async function proxyFollow(target, init, maxRedirect) {
+	let url = target
+	let headers = init.headers
+	let res = null
+	for (let hop = 0; hop <= maxRedirect; hop++) {
+		res = await fetch(url.href, {
+			method: init.method,
+			headers,
+			body: init.body,
+			redirect: 'manual',
+		})
+		const loc = res.headers.get('location')
+		if (!loc || res.status < 300 || res.status > 399) return res
+		const next = new URL(loc, url.href)
+		if (next.protocol !== 'https:') return res
+		if (next.hostname.toLowerCase() !== url.hostname.toLowerCase()) {
+			const h = new Headers(headers)
+			h.delete('authorization')
+			headers = h
+		}
+		url = next
+	}
+	return res
+}
+
+/** API 响应把 Link 头里的绝对地址改写成经过本代理的地址 */
+function rewriteLinkHeader(value, base) {
+	return value.replace(/<([^>]+)>/g, (m, u) => {
+		try {
+			const parsed = new URL(u)
+			return '<' + base + '/' + parsed.host + parsed.pathname + parsed.search + '>'
+		} catch (err) {
+			return m
+		}
+	})
+}
+
+/** 首页 / 未匹配路径：回退到静态站点 */
+async function handleAsset(request, target, url, cfg) {
+	const assetUrl = cfg.assetUrl.replace(/\/$/, '') + (target && target !== '/' ? '/' + target.replace(/^\//, '') : '/')
+	try {
+		const res = await fetch(assetUrl, {
+			headers: { 'user-agent': request.headers.get('user-agent') || 'cf-ghproxy' },
+			cf: { cacheTtl: 300, cacheEverything: true },
+		})
+		const headers = new Headers(res.headers)
+		headers.delete('content-security-policy')
+		headers.delete('set-cookie')
+		headers.set('access-control-allow-origin', '*')
+		return new Response(res.body, { status: res.status, headers })
+	} catch (err) {
+		return jsonRes({ error: '无法加载静态资源: ' + (err && err.message) }, 502)
+	}
+}
+
+export default {
+	async fetch(request, env, ctx) {
+		const cfg = loadConfig(env)
+		const url = new URL(request.url)
+		const method = request.method
+
+		if (method === 'OPTIONS' && request.headers.has('access-control-request-headers')) {
+			return preflight()
+		}
+
+		if (url.pathname === '/_health' || url.pathname === '/healthz') {
+			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', time: new Date().toISOString() })
+		}
+
+		// ?q=https://github.com/... 形式，301 到标准路径
+		const q = url.searchParams.get('q')
+		if (q && (url.pathname === '/' || url.pathname === cfg.prefix || url.pathname === cfg.prefix.replace(/\/$/, ''))) {
+			const target = q.replace(/^https?:\/\//, '')
+			return Response.redirect(url.origin + cfg.prefix.replace(/\/$/, '') + '/' + target, 301)
+		}
+
+		const target = resolveTarget(url.pathname, url.search, cfg.prefix)
+		const hit = matchRule(target.replace(/^https?:\/\//i, ''))
+
+		// 白名单：命中任一片段才放行
+		if (cfg.whiteList.length && !cfg.whiteList.some((w) => target.includes(w))) {
+			return makeRes('blocked', 403, { 'content-type': 'text/plain; charset=utf-8' })
+		}
+
+		if (!hit) {
+			return handleAsset(request, target, url, cfg)
+		}
+
+		const { rule } = hit
+		let upstream = target
+		if (!/^https?:\/\//i.test(upstream)) upstream = 'https://' + upstream
+
+		// /blob/ -> /raw/（或跳转 jsDelivr）
+		if (rule.blobToRaw && upstream.includes('/blob/')) {
+			if (cfg.jsdelivr) {
+				const jd = upstream.replace('/blob/', '@').replace(/^https:\/\/github\.com/, 'https://cdn.jsdelivr.net/gh')
+				return Response.redirect(jd, 302)
+			}
+			upstream = upstream.replace('/blob/', '/raw/')
+		}
+
+		let urlObj
+		try {
+			urlObj = new URL(upstream)
+		} catch (err) {
+			return jsonRes({ error: '无法解析目标地址: ' + upstream }, 400)
+		}
+
+		const init = {
+			method,
+			headers: buildUpstreamHeaders(request),
+			body: method === 'GET' || method === 'HEAD' ? undefined : request.body,
+		}
+
+		try {
+			if (rule.api) {
+				const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+				const extra = {}
+				const link = res.headers.get('link')
+				if (link) extra['link'] = rewriteLinkHeader(link, url.origin + cfg.prefix.replace(/\/$/, ''))
+				return finalize(res, { extra })
+			}
+
+			if (rule.page) {
+				const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+				return finalize(res)
+			}
+
+			const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+			if (res.status >= 300 && res.status <= 399) {
+				// 仍是重定向（例如跨域校验失败），原样交给客户端
+				return finalize(res)
+			}
+			return finalize(res, {
+				extra: {
+					// 下载类响应允许长缓存，命中 CDN 后不再回源
+					'cache-control': res.headers.get('cache-control') || 'public, max-age=600',
+				},
+			})
+		} catch (err) {
+			console.error('代理失败:', err && err.stack)
+			return jsonRes({ error: '上游请求失败: ' + (err && err.message) }, 502)
+		}
+	},
 }
