@@ -1,104 +1,99 @@
-# GitHub 文件加速代理服务
+# CF-Ghproxy · GitHub 文件加速代理
 
-## 简介
+基于 Cloudflare Workers 的 GitHub 加速代理：把 GitHub 的仓库包、release 附件、raw 文件、API 请求套一层 Worker 域名，国内可直连。
 
-这是一个基于 Cloudflare Workers 的 GitHub 文件加速代理服务，旨在解决 GitHub 文件访问速度慢的问题。通过此服务，您可以快速访问 GitHub 上的文件，包括仓库主页、release 文件、原始文件、Git 克隆、Gist 文件以及 GitHub API 请求。
+单文件 module 语法 Worker（`worker.js`），无构建、无依赖。
 
-## 功能特点
+## 用法
 
-- 支持多种 GitHub 资源访问，包括：
-  - 仓库主页
-  - Release 文件
-  - 原始文件
-  - Git 克隆
-  - Gist 文件
-  - GitHub API 请求
-- 使用 Cloudflare 的全球 CDN 网络加速文件访问。
-- 支持跨域请求，解决跨域问题。
-- 支持自定义路由前缀。
-- 支持通过白名单限制访问路径。
+把原始地址放在 Worker 域名之后即可：
 
-## 使用方法
+```bash
+# 仓库源码包
+https://gh.example.com/https://github.com/KuwiNet/CF-Ghproxy/archive/refs/heads/main.zip
 
-### 仓库主页
+# release 附件
+https://gh.example.com/https://github.com/KuwiNet/ZWRT/releases/download/<tag>/<file>
 
-```plaintext
-https://arelay.cn/github.com/user/repo
+# raw 文件（/blob/ 会自动转 /raw/）
+https://gh.example.com/https://github.com/KuwiNet/CF-Ghproxy/blob/main/readme.md
+https://gh.example.com/https://raw.githubusercontent.com/KuwiNet/CF-Ghproxy/main/readme.md
+
+# API（Authorization 会透传，分页 Link 头会被改写回本代理）
+https://gh.example.com/https://api.github.com/repos/KuwiNet/CF-Ghproxy
+
+# 也支持短写法（自动补 github.com 前缀）
+https://gh.example.com/KuwiNet/CF-Ghproxy/archive/refs/heads/main.zip
+
+# 一次性跳转写法
+https://gh.example.com/?q=https://github.com/KuwiNet/CF-Ghproxy/archive/refs/heads/main.zip
+
+# 命令行
+git clone https://gh.example.com/https://github.com/KuwiNet/ZWRT.git
+curl -LO https://gh.example.com/https://github.com/KuwiNet/ZWRT/releases/download/<tag>/<file>
 ```
 
-### Release 文件
-```plaintext
-https://arelay.cn/github.com/user/repo/releases/download/v1.0.0/app.zip
+## 支持的目标
+
+| 路径 | 处理方式 |
+| --- | --- |
+| `github.com/*/*/archive/*`、`github.com/*/*/releases/*` | Worker 内部跟随 302 到 codeload / release-assets 并流式回传 |
+| `github.com/*/*/raw/*`、`github.com/*/*/blob/*` | blob 自动转 raw；可切换 jsDelivr |
+| `raw.githubusercontent.com`、`gist.githubusercontent.com` | 流式回传 |
+| `codeload.github.com`、`objects.githubusercontent.com`、`release-assets.githubusercontent.com` | 流式回传 |
+| `api.github.com` | 透传，`Link` 分页头改写回本代理 |
+| `github.com/*/*` 其他页面 | 原样转发（含 302） |
+| 其他路径 | 回退到 `ASSET_URL` 静态站点（首页） |
+
+`Range` / `If-Range` / `If-None-Match` 会被透传，断点续传与浏览器缓存都能正常工作。
+
+## 部署
+
+```bash
+npm i -g wrangler
+wrangler login
+wrangler deploy          # 读取仓库里的 wrangler.toml
 ```
 
-### 原始文件
-```plaintext
-https://arelay.cn/raw.githubusercontent.com/user/repo/main/file.txt
+绑定自定义域名：`Workers & Pages → 你的 Worker → Settings → Domains & Routes → Add Custom Domain`，
+或用 `wrangler.toml` 里的 `routes`。
+
+控制台方式：新建 Worker，把 `worker.js` 全文粘贴进去，Deploy。
+
+## 环境变量
+
+| 变量 | 默认 | 说明 |
+| --- | --- | --- |
+| `PREFIX` | `/` | 路由前缀。挂在 `example.com/gh/*` 时设为 `/gh/` |
+| `ASSET_URL` | `https://kuwinet.github.io/CF-Ghproxy/` | 未匹配路径回退的静态站点 |
+| `WHITELIST` | 空 | 白名单，逗号分隔；非空时路径必须命中其中片段 |
+| `JSDELIVR` | `0` | `1` 时 `/blob/` 请求改为跳转 jsDelivr CDN |
+| `MAX_REDIRECT` | `5` | 内部跟随重定向的最大跳数 |
+
+## 自检
+
+```bash
+python3 test/smoke.py https://gh.example.com
 ```
 
-### Git 克隆
-```plaintext
-git clone https://arelay.cn/github.com/user/project.git
-```
+覆盖：源码包下载（zip 完整性 + content-length）、raw 文件、`/blob/` 转 raw、API 对象响应、API 分页 Link 改写、
+`Range 206`、`HEAD`、release 附件下载（校验字节数与 `content-disposition`）、首页回退、`?q=` 跳转、OPTIONS 预检。
 
-### Gist 文件
-```plaintext
-https://arelay.cn/gist.githubusercontent.com/user/gist_id/raw/file.txt
-```
+## 常见问题
 
-### GitHub API
-```plaintext
-https://arelay.cn/api.github.com/repos/fatedier/frp/releases/latest
-```
+- **`Error 526: Invalid SSL certificate`**：域名没有由 Worker 提供，Cloudflare 回源到了证书无效的源站。
+  在 `Domains & Routes` 里绑 Custom Domain，并确认没有冲突的 DNS 记录。
+- **下载大文件中断**：`wrangler.toml` 里已开启 `observability`，可在 `Workers Logs` 里看 CPU/时长；
+  免费版单请求有 CPU 限制，持续大流量建议把 `ASSET_URL` 静态托管与 Worker 分开或升级套餐。
+- **`api.github.com` 403**：GitHub API 未认证时限额很低。请求里带 `Authorization: Bearer <token>` 会被透传，
+  也可以用 `wrangler secret put` 注入固定 token（需要自行在代码里读取环境变量）。
+- **私有仓库**：`Authorization` 头会透传，`git clone` 走 401 后由客户端带凭据重试即可。
 
-## 配置说明
+## 版本
 
-### 基本配置
-- `ASSET_URL`：静态文件的 URL，通常不需要修改，也可修改成自己的 URL 。
+- `2.0.0` — module 语法；下载类请求内部跟随重定向；修复 API 分页导致 502；路径解析重写；统一错误与 CORS。
+- `1.0` — 初版（gh-proxy 模板）。
 
-- `PREFIX`：自定义路由前缀，例如 `/gh/`。注意，少一个杠都会导致错误。
+## 许可
 
-- `Config.jsdelivr`：是否使用 jsDelivr 镜像，0 为关闭，1 为开启。
-
-- `whiteList`：白名单，只有路径中包含白名单中的字符才会通过。
-
-### 示例配置
-
-```JavaScript
-const ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
-const PREFIX = '/gh/'
-const Config = {
-    jsdelivr: 0
-}
-const whiteList = ['/username/']
-```
-
-## 部署说明
-
-- 将代码部署到 `Cloudflare Workers`。
-- 配置域名解析，将域名指向 `Cloudflare`。
-- 根据需要调整配置参数。
-
-## 注意事项
-
-- 确保 `Cloudflare Workers` 的配置允许重定向和代理请求。
-- 如果仓库的主分支不是 `main`（如 `master`），需要调整代码中的默认路径。
-- 白名单 `whiteList` 可以用来限制访问的路径，提高安全性。
-  
-## 贡献指南
-
-### 欢迎贡献代码和建议！请遵循以下步骤：
-
-- Fork 本项目。
-
-- 创建您的功能分支：`git checkout -b feature/YourFeature`
-
-- 提交您的更改：`git commit -m 'Add some feature`
-
-- 推送分支：`git push origin feature/YourFeature`
-
-- 创建新的 `Pull Request`
-
-
-## 许可证
-本项目采用 MIT 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
+MIT，见 [LICENSE](LICENSE)。

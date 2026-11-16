@@ -1,0 +1,19 @@
+name = "cf-ghproxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# 自定义域名（控制台加 Custom Domain，或用下面的 routes）
+# [[routes]]
+# pattern = "gh.example.com/*"
+# zone_name = "example.com"
+
+[observability]
+enabled = true
+
+[vars]
+# 见 readme.md 的环境变量表
+# PREFIX = "/gh/"
+# ASSET_URL = "https://kuwinet.github.io/CF-Ghproxy/"
+# WHITELIST = "/KuwiNet/"
+# JSDELIVR = "1"
+# MAX_REDIRECT = "5"
