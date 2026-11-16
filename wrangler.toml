@@ -1,10 +1,10 @@
-name = "cf-ghproxy"
+name = "ghproxy"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# name 必须与 Cloudflare 面板里的 Worker 服务名逐字符一致，否则 Workers Builds 构建会直接失败。
-# 若面板里还没有这个 Worker，建议用 Create application → Import a repository 新建，
-# 服务名会等于仓库名 cf-ghproxy，天然一致。
+# name 必须与 Cloudflare 面板里的 Worker 服务名逐字符一致，否则 Workers Builds 构建会直接失败，
+# 手动 wrangler deploy 时不一致则会新建一个 Worker 而域名仍指在旧的上面。
+# 本仓库填的是 ghproxy（与面板服务名一致）。
 
 # 自定义域名：推荐在控制台 Domains & Routes 里加 Custom Domain，
 # Cloudflare 会自动建 DNS 记录（不要再手工建同名 A/CNAME 记录，否则容易 526）。
