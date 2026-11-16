@@ -2,10 +2,15 @@ name = "cf-ghproxy"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# 自定义域名（控制台加 Custom Domain，或用下面的 routes）
+# name 必须与 Cloudflare 面板里的 Worker 服务名逐字符一致，否则 Workers Builds 构建会直接失败。
+# 若面板里还没有这个 Worker，建议用 Create application → Import a repository 新建，
+# 服务名会等于仓库名 cf-ghproxy，天然一致。
+
+# 自定义域名：推荐在控制台 Domains & Routes 里加 Custom Domain，
+# Cloudflare 会自动建 DNS 记录（不要再手工建同名 A/CNAME 记录，否则容易 526）。
 # [[routes]]
-# pattern = "gh.example.com/*"
-# zone_name = "example.com"
+# pattern = "gh.arelay.cn/*"
+# zone_name = "arelay.cn"
 
 [observability]
 enabled = true
