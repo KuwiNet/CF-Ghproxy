@@ -9,8 +9,8 @@ compatibility_date = "2024-11-01"
 # 自定义域名：推荐在控制台 Domains & Routes 里加 Custom Domain，
 # Cloudflare 会自动建 DNS 记录（不要再手工建同名 A/CNAME 记录，否则容易 526）。
 # [[routes]]
-# pattern = "gh.arelay.cn/*"
-# zone_name = "arelay.cn"
+# pattern = "gh.oproxy.cc/*"
+# zone_name = "oproxy.cc"
 
 [observability]
 enabled = true
@@ -23,4 +23,4 @@ enabled = true
 # JSDELIVR = "1"
 # MAX_REDIRECT = "5"
 # 前置 EdgeOne 等 CDN 时填对外域名，301 与 API Link 头会改写成它
-PUBLIC_HOST = "arelay.cn"
+PUBLIC_HOST = "oproxy.cc"
