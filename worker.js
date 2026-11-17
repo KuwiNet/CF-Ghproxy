@@ -17,9 +17,11 @@
  *   5. 统一错误响应（502 JSON + CORS），补全 OPTIONS 预检、HEAD 支持。
  *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / PUBLIC_HOST / MAX_REDIRECT。
  *   7. 首页 HTML 内置在 Worker 里（HOME_HTML），不再从 github.io 中转。
- *      静态资源（css / js / 字体 / logo）走 jsDelivr 固定 commit；首页响应头 no-cache，
- *      避免浏览器/边缘缓存旧页面导致“刷新几次才正常”。
+ *      静态资源（css / js / 字体 / logo）走 jsDelivr；commit 号集中在 ASSET_COMMIT 一个常量，
+ *      以后换版本只改这一行。首页响应头 no-cache，避免浏览器/边缘缓存旧页面。
  *      设 BUILTIN_HOME=0 可回退到原来的 ASSET_URL 拉取行为。
+ *   8. 导航高亮块改为纯 CSS（见 css/navbar.css 的 ::before 规则），不再靠 JS 测量定位，
+ *      JS 没加载、字体没就绪、换分辨率都不会再错位。
  *
  * 环境变量：
  *   PREFIX       路由前缀，默认 "/"。若自定义路由为 example.com/gh/* 则设为 "/gh/"
@@ -38,26 +40,30 @@
 const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
-/** 内置首页（原 git-proxy/index.html），资源引用已改为 jsDelivr 固定 commit */
+/** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
+const ASSET_COMMIT = '2623f9a1198dc02475ad4201aea669b6d59b923d'
+const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
+
+/** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
 const HOME_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 	<title>GitHub 文件加速</title>
 	<meta charset="UTF-8">
-	<link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/favicon.ico">
+	<link rel="shortcut icon" href="${ASSET_CDN}/favicon.ico">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
 	<!-- Custom CSS -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/git-proxy/style.css">
-	<link href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/css/navbar.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/css/basic.css" rel="stylesheet">
+	<link rel="stylesheet" href="${ASSET_CDN}/git-proxy/style.css">
+	<link href="${ASSET_CDN}/css/navbar.css" rel="stylesheet">
+	<link href="${ASSET_CDN}/css/basic.css" rel="stylesheet">
 </head>
 <body>
 		<nav class="navbar navbar-expand-custom navbar-mainbg">
 		    <div class="navbar-content">
 		        <a class="navbar-brand navbar-logo" href="https://arelay.cn/"><svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 512 512">
-		                <image href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/images/logo.svg" />
+		                <image href="${ASSET_CDN}/images/logo.svg" />
 		            </svg>arelay.cn</a>
 		        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 		            <span class="iconfont">&#xe63c;</span>
@@ -159,8 +165,8 @@ const HOME_HTML = `<!DOCTYPE html>
 	<!-- Bootstrap JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
 	<!-- Custom JS -->
-	<script src="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/git-proxy/script.js"></script>
-	<script src="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/js/navbar.js"></script>
+	<script src="${ASSET_CDN}/git-proxy/script.js"></script>
+	<script src="${ASSET_CDN}/js/navbar.js"></script>
 </html>`
 
 /** 逐跳头，转发前剔除 */
@@ -379,7 +385,7 @@ export default {
 		}
 
 		if (url.pathname === '/_health' || url.pathname === '/healthz') {
-			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', builtinHome: cfg.builtinHome, base: selfBase(url, cfg), time: new Date().toISOString() })
+			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', builtinHome: cfg.builtinHome, assetCommit: ASSET_COMMIT, base: selfBase(url, cfg), time: new Date().toISOString() })
 		}
 
 		// ?q=https://github.com/... 形式，301 到标准路径
