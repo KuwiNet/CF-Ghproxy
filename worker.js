@@ -16,6 +16,9 @@
  *   4. 修正路径解析：查询串、// 折叠、PREFIX 前缀、https:// 前缀都能正确还原。
  *   5. 统一错误响应（502 JSON + CORS），补全 OPTIONS 预检、HEAD 支持。
  *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / PUBLIC_HOST / MAX_REDIRECT。
+ *   7. 首页 HTML 内置在 Worker 里（HOME_HTML），不再从 github.io 中转。
+ *      静态资源（css / js / 字体 / logo）走 jsDelivr 固定 commit。
+ *      设 BUILTIN_HOME=0 可回退到原来的 ASSET_URL 拉取行为。
  *
  * 环境变量：
  *   PREFIX       路由前缀，默认 "/"。若自定义路由为 example.com/gh/* 则设为 "/gh/"
@@ -25,6 +28,7 @@
  *                时，转发 api.github.com 用它认证，把 60 次/小时的匿名 API 限流提到 5000 次/小时。
  *                只对 api.github.com 注入，下载类请求绝不带它（避免与签名 URL 冲突）。
  *   ASSET_URL    未匹配路径时回退的静态站点地址
+ *   BUILTIN_HOME 默认 1；设 0 回退到 ASSET_URL 拉首页
  *   WHITELIST    白名单，逗号分隔；非空时只有路径命中其中片段才放行
  *   JSDELIVR     设为 1 时，/blob/ 请求改为跳转 jsDelivr CDN
  *   MAX_REDIRECT 内部跟随重定向的最大跳数，默认 5
@@ -32,6 +36,131 @@
 
 const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
+
+/** 内置首页（原 git-proxy/index.html），资源引用已改为 jsDelivr 固定 commit */
+const HOME_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>GitHub 文件加速</title>
+	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/favicon.ico">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/git-proxy/style.css">
+	<link href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/css/navbar.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/css/basic.css" rel="stylesheet">
+</head>
+<body>
+		<nav class="navbar navbar-expand-custom navbar-mainbg">
+		    <div class="navbar-content">
+		        <a class="navbar-brand navbar-logo" href="https://arelay.cn/"><svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 512 512">
+		                <image href="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/images/logo.svg" />
+		            </svg>arelay.cn</a>
+		        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		            <span class="iconfont">&#xe63c;</span>
+		        </button>
+		        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+		            <ul class="navbar-nav ml-auto">
+		                <div class="hori-selector">
+		                    <div class="left"></div>
+		                    <div class="right"></div>
+		                </div>
+		                <li class="nav-item active">
+		                    <a class="nav-link" href="https://arelay.cn/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
+		                </li>
+		                <li class="nav-item">
+		                    <a class="nav-link" href="https://docker.arelay.cn/"><span class="iconfont">&#xe6cc;</span> Docker 加速</a>
+		                </li>
+		                <li class="nav-item">
+		                    <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi 分享</a>
+		                </li>
+		                <li class="nav-item">
+		                    <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont">&#xe6ea;</span> aFrp 免费FRP服务</a>
+		                </li>
+		            </ul>
+		        </div>
+		    </div>
+		</nav>
+	
+	<div class="container">
+
+		<form onsubmit="toSubmit(event)" class="search-container">
+			<input 
+				type="text" 
+				class="search-input"
+				name="q" 
+				placeholder="请输入 GitHub 链接"
+				pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
+				required
+			>
+			<button type="submit" class="search-button">
+				<span class="iconfont">&#xe664;</span>
+			</button>
+		</form>
+
+		<div id="result" class="result" style="display: none;">
+			<div class="retext">
+				<p><span id="generated-link"></span></p>
+			</div>
+			<div class="button-container">
+				<div class="button" onclick="copyLink()" title="复制链接">
+					<span class="iconfont">&#xe60f;</span>
+				</div>
+				<div class="button" onclick="jumpToLink()" title="跳转">
+					<span class="iconfont">&#xe6ad;</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="tips">
+			<p><span class="iconfont">&#xe763;</span> GitHub 链接输入支持带协议头 ( https:// ) 或不带</p>
+			<p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
+			<ul class="domain-list">
+				<li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
+				<li><span class="iconfont">&#xe6af;</span> gist.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> api.github.com</li>
+			</ul>
+			<p><span class="iconfont">&#xe67c;</span> Release、Archive 使用 CF 加速，文件会跳转至 JsDelivr</p>
+			<p><span class="iconfont">&#xe610;</span>️ 支持 HTTPS Git Clone 
+			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持 SSH Git Clone 
+			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持文件夹下载</p>
+		</div>
+
+		<div class="example">
+			<div class="example-title"><span class="iconfont">&#xe72a;</span>️️ 输入示例：</div>
+			<p><span class="iconfont">&#xe655;</span>️️️ 分支源码：https://github.com/user/repo/archive/main.zip</p>
+			<p><span class="iconfont">&#xe616;</span>️️️ 版本发布：https://github.com/user/repo/releases/download/v1.0.0/app.zip</p>
+			<p><span class="iconfont">&#xe600;</span>️️ 原始文件：https://raw.githubusercontent.com/user/repo/main/file.txt</p>
+			<p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：https://github.com/user/project.git</p>
+			<p><span class="iconfont">&#xe617;</span>️️️ Gist文件：https://gist.githubusercontent.com/user/gist_id/raw/file.txt</p>
+			<p><span class="iconfont">&#xe71c;</span>️️ Api：https://api.github.com/repos/fatedier/frp/releases/latest</p>
+		</div>
+
+		<div class="example">
+			<div class="example-title"><span class="iconfont">&#xe824;</span>️️️ 基本使用示例：</div>
+			<p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：git clone https://arelay.cn/github.com/user/project.git</p>
+			<p><span class="iconfont">&#xe618;</span>️️ 文件下载：wget https://arelay.cn/raw.githubusercontent.com/user/repo/main/file.txt</p>
+			<p><span class="iconfont">&#xe616;</span>️️️ 版本发布：curl -LO https://arelay.cn/github.com/user/project/project.sh</p>
+		</div>
+		
+		<p style="position: sticky;top: calc(100% - 2.5em);">
+			<br><br>
+			Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
+		</p>
+	</div>
+		<div id="notification" class="notification">
+		</div>
+	<!-- jQuery -->
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+	<!-- Popper.js -->
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+	<!-- Custom JS -->
+	<script src="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/git-proxy/script.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@2c3a1ee8f478a64eee4637d174ef35e55685acac/js/navbar.js"></script>
+</html>`
 
 /** 逐跳头，转发前剔除 */
 const HOP_BY_HOP = new Set([
@@ -83,6 +212,7 @@ function loadConfig(env) {
 		ghToken: (e.GH_TOKEN || '').trim(),
 		prefix: e.PREFIX || DEFAULT_PREFIX,
 		assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
+		builtinHome: String(e.BUILTIN_HOME === undefined ? '1' : e.BUILTIN_HOME) !== '0',
 		whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
 		jsdelivr: String(e.JSDELIVR || '0') === '1',
 		maxRedirect: Number(e.MAX_REDIRECT) > 0 ? Number(e.MAX_REDIRECT) : 5,
@@ -181,7 +311,7 @@ function finalize(res, opts = {}) {
 	return new Response(res.body, { status: res.status, headers })
 }
 
-/** 内部跟随重定向；跨主机时保留 Range，丢弃 Authorization 以外的敏感头 */
+/** 内部跟随重定向；跳主机时保留 Range，丢弃 Authorization 以外的敏感头 */
 async function proxyFollow(target, init, maxRedirect) {
 	let url = target
 	let headers = init.headers
@@ -219,7 +349,7 @@ function rewriteLinkHeader(value, base) {
 	})
 }
 
-/** 首页 / 未匹配路径：回退到静态站点 */
+/** 未匹配路径：回退到静态站点（仅当 BUILTIN_HOME=0 或非首页时） */
 async function handleAsset(request, target, url, cfg) {
 	const assetUrl = cfg.assetUrl.replace(/\/$/, '') + (target && target !== '/' ? '/' + target.replace(/^\//, '') : '/')
 	try {
@@ -248,7 +378,7 @@ export default {
 		}
 
 		if (url.pathname === '/_health' || url.pathname === '/healthz') {
-			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', base: selfBase(url, cfg), time: new Date().toISOString() })
+			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', builtinHome: cfg.builtinHome, base: selfBase(url, cfg), time: new Date().toISOString() })
 		}
 
 		// ?q=https://github.com/... 形式，301 到标准路径
@@ -256,6 +386,14 @@ export default {
 		if (q && (url.pathname === '/' || url.pathname === cfg.prefix || url.pathname === cfg.prefix.replace(/\/$/, ''))) {
 			const target = q.replace(/^https?:\/\//, '')
 			return Response.redirect(selfBase(url, cfg) + '/' + target, 301)
+		}
+
+		// 首页直接返回内置 HTML：不再从 github.io 中转，断网也不会把导航抽掉
+		if (cfg.builtinHome && (url.pathname === '/' || url.pathname === '/index.html') && (method === 'GET' || method === 'HEAD')) {
+			return makeRes(method === 'HEAD' ? null : HOME_HTML, 200, {
+				'content-type': 'text/html; charset=utf-8',
+				'cache-control': 'public, max-age=600',
+			})
 		}
 
 		const target = resolveTarget(url.pathname, url.search, cfg.prefix)
@@ -318,7 +456,7 @@ export default {
 
 			const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
 			if (res.status >= 300 && res.status <= 399) {
-				// 仍是重定向（例如跨域校验失败），原样交给客户端
+				// 仍是重定向（例如跳域校验失败），原样交给客户端
 				return finalize(res)
 			}
 			return finalize(res, {
