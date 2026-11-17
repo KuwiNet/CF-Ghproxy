@@ -17,7 +17,8 @@
  *   5. 统一错误响应（502 JSON + CORS），补全 OPTIONS 预检、HEAD 支持。
  *   6. 配置全部走环境变量：PREFIX / ASSET_URL / WHITELIST / JSDELIVR / PUBLIC_HOST / MAX_REDIRECT。
  *   7. 首页 HTML 内置在 Worker 里（HOME_HTML），不再从 github.io 中转。
- *      静态资源（css / js / 字体 / logo）走 jsDelivr 固定 commit。
+ *      静态资源（css / js / 字体 / logo）走 jsDelivr 固定 commit；首页响应头 no-cache，
+ *      避免浏览器/边缘缓存旧页面导致“刷新几次才正常”。
  *      设 BUILTIN_HOME=0 可回退到原来的 ASSET_URL 拉取行为。
  *
  * 环境变量：
@@ -311,7 +312,7 @@ function finalize(res, opts = {}) {
 	return new Response(res.body, { status: res.status, headers })
 }
 
-/** 内部跟随重定向；跳主机时保留 Range，丢弃 Authorization 以外的敏感头 */
+/** 内部跟随重定向；跳主机时保留 Range，丢弃 Authorization */
 async function proxyFollow(target, init, maxRedirect) {
 	let url = target
 	let headers = init.headers
@@ -337,7 +338,7 @@ async function proxyFollow(target, init, maxRedirect) {
 	return res
 }
 
-/** API 响应把 Link 头里的绝对地址改写成经过本代理的地址 */
+/** API 响应把 Link 头里的绝对地址改写为经过本代理的地址 */
 function rewriteLinkHeader(value, base) {
 	return value.replace(/<([^>]+)>/g, (m, u) => {
 		try {
@@ -392,7 +393,7 @@ export default {
 		if (cfg.builtinHome && (url.pathname === '/' || url.pathname === '/index.html') && (method === 'GET' || method === 'HEAD')) {
 			return makeRes(method === 'HEAD' ? null : HOME_HTML, 200, {
 				'content-type': 'text/html; charset=utf-8',
-				'cache-control': 'public, max-age=600',
+				'cache-control': 'no-cache',
 			})
 		}
 
