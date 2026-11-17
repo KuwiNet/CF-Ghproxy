@@ -41,156 +41,156 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'c5d58a331e812ef9064931f5b9f951d690284c50'
+const ASSET_COMMIT = 'eaf275f9e1af10a53f8c24c8dcd8c73ee335132d'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
 const HOME_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<title>GitHub 文件加速</title>
-	<meta charset="UTF-8">
-	<link rel="shortcut icon" href="${ASSET_CDN}/favicon.ico">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="${ASSET_CDN}/git-proxy/style.css">
-	<link href="${ASSET_CDN}/css/navbar.css" rel="stylesheet">
-	<link href="${ASSET_CDN}/css/basic.css" rel="stylesheet">
+    <title>GitHub 文件加速</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="${ASSET_CDN}/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="${ASSET_CDN}/git-proxy/style.css">
+    <link href="${ASSET_CDN}/css/navbar.css" rel="stylesheet">
+    <link href="${ASSET_CDN}/css/basic.css" rel="stylesheet">
 </head>
 <body>
-		<nav class="navbar navbar-expand-custom navbar-mainbg">
-		    <div class="navbar-content">
-		        <a class="navbar-brand navbar-logo" href="https://arelay.cn/"><svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 512 512">
-		                <image href="${ASSET_CDN}/images/logo.svg" />
-		            </svg>arelay.cn</a>
-		        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-		            <span class="iconfont">&#xe63c;</span>
-		        </button>
-		        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-		            <ul class="navbar-nav ml-auto">
-		                <div class="hori-selector">
-		                    <div class="left"></div>
-		                    <div class="right"></div>
-		                </div>
-		                <li class="nav-item active">
-		                    <a class="nav-link" href="https://arelay.cn/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
-		                </li>
-		                <li class="nav-item">
-		                    <a class="nav-link" href="https://docker.arelay.cn/"><span class="iconfont">&#xe6cc;</span> Docker 加速</a>
-		                </li>
-		                <li class="nav-item">
-		                    <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi 分享</a>
-		                </li>
-		                <li class="nav-item">
-		                    <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont">&#xe6ea;</span> aFrp 免费FRP服务</a>
-		                </li>
-		            </ul>
-		        </div>
-		    </div>
-		</nav>
-	
-	<div class="container">
+        <nav class="navbar navbar-expand-custom navbar-mainbg">
+            <div class="navbar-content">
+                <a class="navbar-brand navbar-logo" href="https://arelay.cn/"><svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 512 512">
+                        <image href="${ASSET_CDN}/images/logo.svg" />
+                    </svg>arelay.cn</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="iconfont">&#xe63c;</span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto">
+                        <div class="hori-selector">
+                            <div class="left"></div>
+                            <div class="right"></div>
+                        </div>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="https://arelay.cn/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://docker.arelay.cn/"><span class="iconfont">&#xe6cc;</span> Docker 加速</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi 分享</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont">&#xe6ea;</span> aFrp 免费FRP服务</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-		<form onsubmit="toSubmit(event)" class="search-container">
-			<input 
-				type="text" 
-				class="search-input"
-				name="q" 
-				placeholder="请输入 GitHub 链接"
-				pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
-				required
-			>
-			<button type="submit" class="search-button">
-				<span class="iconfont">&#xe664;</span>
-			</button>
-		</form>
+<div class="container">
 
-		<div id="result" class="result" style="display: none;">
-			<div class="retext">
-				<p><span id="generated-link"></span></p>
-			</div>
-			<div class="button-container">
-				<div class="button" onclick="copyLink()" title="复制链接">
-					<span class="iconfont">&#xe60f;</span>
-				</div>
-				<div class="button" onclick="jumpToLink()" title="跳转">
-					<span class="iconfont">&#xe6ad;</span>
-				</div>
-			</div>
-		</div>
+    <form onsubmit="toSubmit(event)" class="search-container">
+        <input 
+            type="text" 
+            class="search-input"
+            name="q" 
+            placeholder="请输入 GitHub 链接"
+            pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
+            required
+        >
+        <button type="submit" class="search-button">
+            <span class="iconfont">&#xe664;</span>
+        </button>
+    </form>
 
-		<div class="tips">
-			<p><span class="iconfont">&#xe763;</span> GitHub 链接输入支持带协议头 ( https:// ) 或不带</p>
-			<p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
-			<ul class="domain-list">
-				<li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
-				<li><span class="iconfont">&#xe6af;</span> gist.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> api.github.com</li>
-			</ul>
-			<p><span class="iconfont">&#xe67c;</span> Release、Archive 使用 CF 加速，文件会跳转至 JsDelivr</p>
-			<p><span class="iconfont">&#xe610;</span>️ 支持 HTTPS Git Clone 
-			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持 SSH Git Clone 
-			&nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持文件夹下载</p>
-		</div>
+    <div id="result" class="result" style="display: none;">
+        <div class="retext">
+            <p><span id="generated-link"></span></p>
+        </div>
+        <div class="button-container">
+            <div class="button" onclick="copyLink()" title="复制链接">
+                <span class="iconfont">&#xe60f;</span>
+            </div>
+            <div class="button" onclick="jumpToLink()" title="跳转">
+                <span class="iconfont">&#xe6ad;</span>
+            </div>
+        </div>
+    </div>
 
-		<div class="example">
-			<div class="example-title"><span class="iconfont">&#xe72a;</span>️️ 输入示例：</div>
-			<p><span class="iconfont">&#xe655;</span>️️️ 分支源码：https://github.com/user/repo/archive/main.zip</p>
-			<p><span class="iconfont">&#xe616;</span>️️️ 版本发布：https://github.com/user/repo/releases/download/v1.0.0/app.zip</p>
-			<p><span class="iconfont">&#xe600;</span>️️ 原始文件：https://raw.githubusercontent.com/user/repo/main/file.txt</p>
-			<p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：https://github.com/user/project.git</p>
-			<p><span class="iconfont">&#xe617;</span>️️️ Gist文件：https://gist.githubusercontent.com/user/gist_id/raw/file.txt</p>
-			<p><span class="iconfont">&#xe71c;</span>️️ Api：https://api.github.com/repos/fatedier/frp/releases/latest</p>
-		</div>
+    <div class="tips">
+        <p><span class="iconfont">&#xe763;</span> GitHub 链接输入支持带协议头 ( https:// ) 或不带</p>
+        <p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
+        <ul class="domain-list">
+            <li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
+            <li><span class="iconfont">&#xe6af;</span> gist.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> api.github.com</li>
+        </ul>
+        <p><span class="iconfont">&#xe67c;</span> Release、Archive 使用 CF 加速，文件会跳转至 JsDelivr</p>
+        <p><span class="iconfont">&#xe610;</span>️ 支持 HTTPS Git Clone 
+        &nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持 SSH Git Clone 
+        &nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持文件夹下载</p>
+    </div>
 
-		<div class="example">
-			<div class="example-title"><span class="iconfont">&#xe824;</span>️️️ 基本使用示例：</div>
-			<p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：git clone https://arelay.cn/github.com/user/project.git</p>
-			<p><span class="iconfont">&#xe618;</span>️️ 文件下载：wget https://arelay.cn/raw.githubusercontent.com/user/repo/main/file.txt</p>
-			<p><span class="iconfont">&#xe616;</span>️️️ 版本发布：curl -LO https://arelay.cn/github.com/user/project/project.sh</p>
-		</div>
-		
-		<p style="position: sticky;top: calc(100% - 2.5em);">
-			<br><br>
-			Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
-		</p>
-	</div>
-		<div id="notification" class="notification">
-		</div>
-	<!-- jQuery -->
-	<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
-	<!-- Popper.js -->
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-	<!-- Bootstrap JS -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
-	<!-- Custom JS -->
-	<script src="${ASSET_CDN}/git-proxy/script.js"></script>
-	<script src="${ASSET_CDN}/js/navbar.js"></script>
+    <div class="example">
+        <div class="example-title"><span class="iconfont">&#xe72a;</span>️️ 输入示例：</div>
+        <p><span class="iconfont">&#xe655;</span>️️️ 分支源码：https://github.com/user/repo/archive/main.zip</p>
+        <p><span class="iconfont">&#xe616;</span>️️️ 版本发布：https://github.com/user/repo/releases/download/v1.0.0/app.zip</p>
+        <p><span class="iconfont">&#xe600;</span>️️ 原始文件：https://raw.githubusercontent.com/user/repo/main/file.txt</p>
+        <p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：https://github.com/user/project.git</p>
+        <p><span class="iconfont">&#xe617;</span>️️️ Gist文件：https://gist.githubusercontent.com/user/gist_id/raw/file.txt</p>
+        <p><span class="iconfont">&#xe71c;</span>️️ Api：https://api.github.com/repos/fatedier/frp/releases/latest</p>
+    </div>
+
+    <div class="example">
+        <div class="example-title"><span class="iconfont">&#xe824;</span>️️️ 基本使用示例：</div>
+        <p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：git clone https://arelay.cn/github.com/user/project.git</p>
+        <p><span class="iconfont">&#xe618;</span>️️ 文件下载：wget https://arelay.cn/raw.githubusercontent.com/user/repo/main/file.txt</p>
+        <p><span class="iconfont">&#xe616;</span>️️️ 版本发布：curl -LO https://arelay.cn/github.com/user/project/project.sh</p>
+    </div>
+    
+    <p style="position: sticky;top: calc(100% - 2.5em);">
+        <br><br>
+        Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
+    </p>
+</div>
+    <div id="notification" class="notification">
+    </div>
+<!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<!-- Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+<!-- Custom JS -->
+<script src="${ASSET_CDN}/git-proxy/script.js"></script>
+<script src="${ASSET_CDN}/js/navbar.js"></script>
 </html>`
 
 /** 逐跳头，转发前剔除 */
 const HOP_BY_HOP = new Set([
-	'connection',
-	'keep-alive',
-	'proxy-authenticate',
-	'proxy-authorization',
-	'te',
-	'trailer',
-	'transfer-encoding',
-	'upgrade',
+    'connection',
+    'keep-alive',
+    'proxy-authenticate',
+    'proxy-authorization',
+    'te',
+    'trailer',
+    'transfer-encoding',
+    'upgrade',
 ])
 
 const PASSTHROUGH_HEADERS = [
-	'accept',
-	'accept-language',
-	'authorization',
-	'user-agent',
-	'range',
-	'if-range',
-	'if-none-match',
-	'if-modified-since',
-	'cache-control',
+    'accept',
+    'accept-language',
+    'authorization',
+    'user-agent',
+    'range',
+    'if-range',
+    'if-none-match',
+    'if-modified-since',
+    'cache-control',
 ]
 
 /** 路径 -> 处理策略
@@ -199,282 +199,282 @@ const PASSTHROUGH_HEADERS = [
  *  html:   普通仓库页面，原样转发（含 302）
  */
 const RULES = [
-	{ name: 'repo-archive', re: /^github\.com\/([^/]+)\/([^/]+)\/(releases|archive)\//i, follow: true },
-	{ name: 'repo-raw', re: /^github\.com\/([^/]+)\/([^/]+)\/(blob|raw)\//i, follow: true, blobToRaw: true },
-	{ name: 'repo-git', re: /^github\.com\/([^/]+)\/([^/]+)\/(info|git-)/i, follow: true },
-	{ name: 'repo-tags', re: /^github\.com\/([^/]+)\/([^/]+)\/tags/i, follow: true },
-	{ name: 'raw', re: /^raw\.(?:githubusercontent|github)\.com\//i, follow: true },
-	{ name: 'gist-raw', re: /^gist\.(?:githubusercontent|github)\.com\//i, follow: true },
-	{ name: 'codeload', re: /^codeload\.github\.com\//i, follow: true },
-	{ name: 'objects', re: /^objects\.githubusercontent\.com\//i, follow: true },
-	{ name: 'release-asset', re: /^release-assets\.githubusercontent\.com\//i, follow: true },
-	{ name: 'api', re: /^api\.github\.com\//i, api: true },
-	{ name: 'repo-page', re: /^github\.com\/([^/]+)\/([^/]+)(\/.*)?$/i, page: true },
+    { name: 'repo-archive', re: /^github\.com\/([^/]+)\/([^/]+)\/(releases|archive)\//i, follow: true },
+    { name: 'repo-raw', re: /^github\.com\/([^/]+)\/([^/]+)\/(blob|raw)\//i, follow: true, blobToRaw: true },
+    { name: 'repo-git', re: /^github\.com\/([^/]+)\/([^/]+)\/(info|git-)/i, follow: true },
+    { name: 'repo-tags', re: /^github\.com\/([^/]+)\/([^/]+)\/tags/i, follow: true },
+    { name: 'raw', re: /^raw\.(?:githubusercontent|github)\.com\//i, follow: true },
+    { name: 'gist-raw', re: /^gist\.(?:githubusercontent|github)\.com\//i, follow: true },
+    { name: 'codeload', re: /^codeload\.github\.com\//i, follow: true },
+    { name: 'objects', re: /^objects\.githubusercontent\.com\//i, follow: true },
+    { name: 'release-asset', re: /^release-assets\.githubusercontent\.com\//i, follow: true },
+    { name: 'api', re: /^api\.github\.com\//i, api: true },
+    { name: 'repo-page', re: /^github\.com\/([^/]+)\/([^/]+)(\/.*)?$/i, page: true },
 ]
 
 function loadConfig(env) {
-	const e = env || {}
-	return {
-		publicHost: (e.PUBLIC_HOST || '').trim(),
-		ghToken: (e.GH_TOKEN || '').trim(),
-		prefix: e.PREFIX || DEFAULT_PREFIX,
-		assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
-		builtinHome: String(e.BUILTIN_HOME === undefined ? '1' : e.BUILTIN_HOME) !== '0',
-		whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
-		jsdelivr: String(e.JSDELIVR || '0') === '1',
-		maxRedirect: Number(e.MAX_REDIRECT) > 0 ? Number(e.MAX_REDIRECT) : 5,
-	}
+    const e = env || {}
+    return {
+        publicHost: (e.PUBLIC_HOST || '').trim(),
+        ghToken: (e.GH_TOKEN || '').trim(),
+        prefix: e.PREFIX || DEFAULT_PREFIX,
+        assetUrl: e.ASSET_URL || DEFAULT_ASSET_URL,
+        builtinHome: String(e.BUILTIN_HOME === undefined ? '1' : e.BUILTIN_HOME) !== '0',
+        whiteList: (e.WHITELIST || '').split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean),
+        jsdelivr: String(e.JSDELIVR || '0') === '1',
+        maxRedirect: Number(e.MAX_REDIRECT) > 0 ? Number(e.MAX_REDIRECT) : 5,
+    }
 }
 
 /** 对外基地址：PUBLIC_HOST 有值时固定用它（前置 CDN 时不暴露回源域名），否则用回源 Host */
 function selfBase(url, cfg) {
-	const prefix = cfg.prefix.replace(/\/$/, '')
-	if (cfg.publicHost) {
-		const raw = cfg.publicHost.replace(/\/$/, '')
-		const origin = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw
-		return origin + prefix
-	}
-	return url.origin + prefix
+    const prefix = cfg.prefix.replace(/\/$/, '')
+    if (cfg.publicHost) {
+        const raw = cfg.publicHost.replace(/\/$/, '')
+        const origin = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw
+        return origin + prefix
+    }
+    return url.origin + prefix
 }
 
 function corsHeaders(extra) {
-	const h = new Headers(extra || {})
-	h.set('access-control-allow-origin', '*')
-	h.set('access-control-expose-headers', '*')
-	return h
+    const h = new Headers(extra || {})
+    h.set('access-control-allow-origin', '*')
+    h.set('access-control-expose-headers', '*')
+    return h
 }
 
 function makeRes(body, status = 200, headers = {}) {
-	return new Response(body, { status, headers: corsHeaders(headers) })
+    return new Response(body, { status, headers: corsHeaders(headers) })
 }
 
 function jsonRes(obj, status = 200, headers = {}) {
-	return makeRes(JSON.stringify(obj), status, Object.assign({ 'content-type': 'application/json; charset=utf-8' }, headers))
+    return makeRes(JSON.stringify(obj), status, Object.assign({ 'content-type': 'application/json; charset=utf-8' }, headers))
 }
 
 function preflight() {
-	return new Response(null, {
-		status: 204,
-		headers: {
-			'access-control-allow-origin': '*',
-			'access-control-allow-methods': 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS',
-			'access-control-allow-headers': '*',
-			'access-control-max-age': '1728000',
-		},
-	})
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'access-control-allow-origin': '*',
+            'access-control-allow-methods': 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS',
+            'access-control-allow-headers': '*',
+            'access-control-max-age': '1728000',
+        },
+    })
 }
 
 /** 把请求路径还原成待访问的原始地址（含查询串） */
 function resolveTarget(pathname, search, prefix) {
-	let p = pathname || '/'
-	if (prefix && prefix !== '/' && p.startsWith(prefix)) p = p.slice(prefix.length)
-	else if (p.startsWith('/')) p = p.slice(1)
-	// CF 会把路径里的 // 折叠成 /，这里补回来
-	p = p.replace(/^(https?):\/+/, '$1://')
-	if (search) p += search
-	// 短写法：/owner/repo/archive/... 自动补成 github.com/owner/repo/archive/...
-	if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
-		if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-)/i.test(p)) {
-			p = 'github.com/' + p
-		}
-	}
-	return p
+    let p = pathname || '/'
+    if (prefix && prefix !== '/' && p.startsWith(prefix)) p = p.slice(prefix.length)
+    else if (p.startsWith('/')) p = p.slice(1)
+    // CF 会把路径里的 // 折叠成 /，这里补回来
+    p = p.replace(/^(https?):\/+/, '$1://')
+    if (search) p += search
+    // 短写法：/owner/repo/archive/... 自动补成 github.com/owner/repo/archive/...
+    if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
+        if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-)/i.test(p)) {
+            p = 'github.com/' + p
+        }
+    }
+    return p
 }
 
 /** 匹配处理规则 */
 function matchRule(target) {
-	for (const rule of RULES) {
-		const m = rule.re.exec(target)
-		if (m) return { rule, match: m }
-	}
-	return null
+    for (const rule of RULES) {
+        const m = rule.re.exec(target)
+        if (m) return { rule, match: m }
+    }
+    return null
 }
 
 function buildUpstreamHeaders(request) {
-	const headers = new Headers()
-	for (const name of PASSTHROUGH_HEADERS) {
-		const v = request.headers.get(name)
-		if (v) headers.set(name, v)
-	}
-	// 强制 identity，避免 CF 自动解压导致 content-length 与实际字节数不一致
-	headers.set('accept-encoding', 'identity')
-	return headers
+    const headers = new Headers()
+    for (const name of PASSTHROUGH_HEADERS) {
+        const v = request.headers.get(name)
+        if (v) headers.set(name, v)
+    }
+    // 强制 identity，避免 CF 自动解压导致 content-length 与实际字节数不一致
+    headers.set('accept-encoding', 'identity')
+    return headers
 }
 
 /** 组装响应：剔除逐跳头，补 CORS，去掉碍事的 CSP */
 function finalize(res, opts = {}) {
-	const headers = new Headers()
-	for (const [k, v] of res.headers) {
-		if (HOP_BY_HOP.has(k.toLowerCase())) continue
-		headers.set(k, v)
-	}
-	headers.delete('content-security-policy')
-	headers.delete('content-security-policy-report-only')
-	headers.delete('clear-site-data')
-	headers.delete('set-cookie')
-	headers.set('access-control-allow-origin', '*')
-	headers.set('access-control-expose-headers', '*')
-	if (opts.extra) for (const [k, v] of Object.entries(opts.extra)) headers.set(k, v)
-	return new Response(res.body, { status: res.status, headers })
+    const headers = new Headers()
+    for (const [k, v] of res.headers) {
+        if (HOP_BY_HOP.has(k.toLowerCase())) continue
+        headers.set(k, v)
+    }
+    headers.delete('content-security-policy')
+    headers.delete('content-security-policy-report-only')
+    headers.delete('clear-site-data')
+    headers.delete('set-cookie')
+    headers.set('access-control-allow-origin', '*')
+    headers.set('access-control-expose-headers', '*')
+    if (opts.extra) for (const [k, v] of Object.entries(opts.extra)) headers.set(k, v)
+    return new Response(res.body, { status: res.status, headers })
 }
 
 /** 内部跟随重定向；跳主机时保留 Range，丢弃 Authorization */
 async function proxyFollow(target, init, maxRedirect) {
-	let url = target
-	let headers = init.headers
-	let res = null
-	for (let hop = 0; hop <= maxRedirect; hop++) {
-		res = await fetch(url.href, {
-			method: init.method,
-			headers,
-			body: init.body,
-			redirect: 'manual',
-		})
-		const loc = res.headers.get('location')
-		if (!loc || res.status < 300 || res.status > 399) return res
-		const next = new URL(loc, url.href)
-		if (next.protocol !== 'https:') return res
-		if (next.hostname.toLowerCase() !== url.hostname.toLowerCase()) {
-			const h = new Headers(headers)
-			h.delete('authorization')
-			headers = h
-		}
-		url = next
-	}
-	return res
+    let url = target
+    let headers = init.headers
+    let res = null
+    for (let hop = 0; hop <= maxRedirect; hop++) {
+        res = await fetch(url.href, {
+            method: init.method,
+            headers,
+            body: init.body,
+            redirect: 'manual',
+        })
+        const loc = res.headers.get('location')
+        if (!loc || res.status < 300 || res.status > 399) return res
+        const next = new URL(loc, url.href)
+        if (next.protocol !== 'https:') return res
+        if (next.hostname.toLowerCase() !== url.hostname.toLowerCase()) {
+            const h = new Headers(headers)
+            h.delete('authorization')
+            headers = h
+        }
+        url = next
+    }
+    return res
 }
 
 /** API 响应把 Link 头里的绝对地址改写为经过本代理的地址 */
 function rewriteLinkHeader(value, base) {
-	return value.replace(/<([^>]+)>/g, (m, u) => {
-		try {
-			const parsed = new URL(u)
-			return '<' + base + '/' + parsed.host + parsed.pathname + parsed.search + '>'
-		} catch (err) {
-			return m
-		}
-	})
+    return value.replace(/<([^>]+)>/g, (m, u) => {
+        try {
+            const parsed = new URL(u)
+            return '<' + base + '/' + parsed.host + parsed.pathname + parsed.search + '>'
+        } catch (err) {
+            return m
+        }
+    })
 }
 
 /** 未匹配路径：回退到静态站点（仅当 BUILTIN_HOME=0 或非首页时） */
 async function handleAsset(request, target, url, cfg) {
-	const assetUrl = cfg.assetUrl.replace(/\/$/, '') + (target && target !== '/' ? '/' + target.replace(/^\//, '') : '/')
-	try {
-		const res = await fetch(assetUrl, {
-			headers: { 'user-agent': request.headers.get('user-agent') || 'cf-ghproxy' },
-			cf: { cacheTtl: 300, cacheEverything: true },
-		})
-		const headers = new Headers(res.headers)
-		headers.delete('content-security-policy')
-		headers.delete('set-cookie')
-		headers.set('access-control-allow-origin', '*')
-		return new Response(res.body, { status: res.status, headers })
-	} catch (err) {
-		return jsonRes({ error: '无法加载静态资源: ' + (err && err.message) }, 502)
-	}
+    const assetUrl = cfg.assetUrl.replace(/\/$/, '') + (target && target !== '/' ? '/' + target.replace(/^\//, '') : '/')
+    try {
+        const res = await fetch(assetUrl, {
+            headers: { 'user-agent': request.headers.get('user-agent') || 'cf-ghproxy' },
+            cf: { cacheTtl: 300, cacheEverything: true },
+        })
+        const headers = new Headers(res.headers)
+        headers.delete('content-security-policy')
+        headers.delete('set-cookie')
+        headers.set('access-control-allow-origin', '*')
+        return new Response(res.body, { status: res.status, headers })
+    } catch (err) {
+        return jsonRes({ error: '无法加载静态资源: ' + (err && err.message) }, 502)
+    }
 }
 
 export default {
-	async fetch(request, env, ctx) {
-		const cfg = loadConfig(env)
-		const url = new URL(request.url)
-		const method = request.method
+    async fetch(request, env, ctx) {
+        const cfg = loadConfig(env)
+        const url = new URL(request.url)
+        const method = request.method
 
-		if (method === 'OPTIONS' && request.headers.has('access-control-request-headers')) {
-			return preflight()
-		}
+        if (method === 'OPTIONS' && request.headers.has('access-control-request-headers')) {
+            return preflight()
+        }
 
-		if (url.pathname === '/_health' || url.pathname === '/healthz') {
-			return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', builtinHome: cfg.builtinHome, assetCommit: ASSET_COMMIT, base: selfBase(url, cfg), time: new Date().toISOString() })
-		}
+        if (url.pathname === '/_health' || url.pathname === '/healthz') {
+            return jsonRes({ status: 'ok', proxy: 'cf-ghproxy', builtinHome: cfg.builtinHome, assetCommit: ASSET_COMMIT, base: selfBase(url, cfg), time: new Date().toISOString() })
+        }
 
-		// ?q=https://github.com/... 形式，301 到标准路径
-		const q = url.searchParams.get('q')
-		if (q && (url.pathname === '/' || url.pathname === cfg.prefix || url.pathname === cfg.prefix.replace(/\/$/, ''))) {
-			const target = q.replace(/^https?:\/\//, '')
-			return Response.redirect(selfBase(url, cfg) + '/' + target, 301)
-		}
+        // ?q=https://github.com/... 形式，301 到标准路径
+        const q = url.searchParams.get('q')
+        if (q && (url.pathname === '/' || url.pathname === cfg.prefix || url.pathname === cfg.prefix.replace(/\/$/, ''))) {
+            const target = q.replace(/^https?:\/\//, '')
+            return Response.redirect(selfBase(url, cfg) + '/' + target, 301)
+        }
 
-		// 首页直接返回内置 HTML：不再从 github.io 中转，断网也不会把导航抽掉
-		if (cfg.builtinHome && (url.pathname === '/' || url.pathname === '/index.html') && (method === 'GET' || method === 'HEAD')) {
-			return makeRes(method === 'HEAD' ? null : HOME_HTML, 200, {
-				'content-type': 'text/html; charset=utf-8',
-				'cache-control': 'no-cache',
-			})
-		}
+        // 首页直接返回内置 HTML：不再从 github.io 中转，断网也不会把导航抽掉
+        if (cfg.builtinHome && (url.pathname === '/' || url.pathname === '/index.html') && (method === 'GET' || method === 'HEAD')) {
+            return makeRes(method === 'HEAD' ? null : HOME_HTML, 200, {
+                'content-type': 'text/html; charset=utf-8',
+                'cache-control': 'no-cache',
+            })
+        }
 
-		const target = resolveTarget(url.pathname, url.search, cfg.prefix)
-		const hit = matchRule(target.replace(/^https?:\/\//i, ''))
+        const target = resolveTarget(url.pathname, url.search, cfg.prefix)
+        const hit = matchRule(target.replace(/^https?:\/\//i, ''))
 
-		// 白名单：命中任一片段才放行
-		if (cfg.whiteList.length && !cfg.whiteList.some((w) => target.includes(w))) {
-			return makeRes('blocked', 403, { 'content-type': 'text/plain; charset=utf-8' })
-		}
+        // 白名单：命中任一片段才放行
+        if (cfg.whiteList.length && !cfg.whiteList.some((w) => target.includes(w))) {
+            return makeRes('blocked', 403, { 'content-type': 'text/plain; charset=utf-8' })
+        }
 
-		if (!hit) {
-			return handleAsset(request, target, url, cfg)
-		}
+        if (!hit) {
+            return handleAsset(request, target, url, cfg)
+        }
 
-		const { rule } = hit
-		let upstream = target
-		if (!/^https?:\/\//i.test(upstream)) upstream = 'https://' + upstream
+        const { rule } = hit
+        let upstream = target
+        if (!/^https?:\/\//i.test(upstream)) upstream = 'https://' + upstream
 
-		// /blob/ -> /raw/（或跳转 jsDelivr）
-		if (rule.blobToRaw && upstream.includes('/blob/')) {
-			if (cfg.jsdelivr) {
-				const jd = upstream.replace('/blob/', '@').replace(/^https:\/\/github\.com/, 'https://cdn.jsdelivr.net/gh')
-				return Response.redirect(jd, 302)
-			}
-			upstream = upstream.replace('/blob/', '/raw/')
-		}
+        // /blob/ -> /raw/（或跳转 jsDelivr）
+        if (rule.blobToRaw && upstream.includes('/blob/')) {
+            if (cfg.jsdelivr) {
+                const jd = upstream.replace('/blob/', '@').replace(/^https:\/\/github\.com/, 'https://cdn.jsdelivr.net/gh')
+                return Response.redirect(jd, 302)
+            }
+            upstream = upstream.replace('/blob/', '/raw/')
+        }
 
-		let urlObj
-		try {
-			urlObj = new URL(upstream)
-		} catch (err) {
-			return jsonRes({ error: '无法解析目标地址: ' + upstream }, 400)
-		}
+        let urlObj
+        try {
+            urlObj = new URL(upstream)
+        } catch (err) {
+            return jsonRes({ error: '无法解析目标地址: ' + upstream }, 400)
+        }
 
-		const init = {
-			method,
-			headers: buildUpstreamHeaders(request),
-			body: method === 'GET' || method === 'HEAD' ? undefined : request.body,
-		}
+        const init = {
+            method,
+            headers: buildUpstreamHeaders(request),
+            body: method === 'GET' || method === 'HEAD' ? undefined : request.body,
+        }
 
-		try {
-			if (rule.api) {
-				// 客户端自己带了 Authorization 就尊重它；否则用 GH_TOKEN 认证，绕开 60 次/小时的匿名限流
-				let apiHeaders = init.headers
-				if (cfg.ghToken && !apiHeaders.has('authorization')) {
-					apiHeaders = new Headers(apiHeaders)
-					apiHeaders.set('authorization', 'Bearer ' + cfg.ghToken)
-				}
-				const res = await fetch(urlObj.href, { method, headers: apiHeaders, body: init.body, redirect: 'manual' })
-				const extra = {}
-				const link = res.headers.get('link')
-				if (link) extra['link'] = rewriteLinkHeader(link, selfBase(url, cfg))
-				return finalize(res, { extra })
-			}
+        try {
+            if (rule.api) {
+                // 客户端自己带了 Authorization 就尊重它；否则用 GH_TOKEN 认证，绕开 60 次/小时的匿名限流
+                let apiHeaders = init.headers
+                if (cfg.ghToken && !apiHeaders.has('authorization')) {
+                    apiHeaders = new Headers(apiHeaders)
+                    apiHeaders.set('authorization', 'Bearer ' + cfg.ghToken)
+                }
+                const res = await fetch(urlObj.href, { method, headers: apiHeaders, body: init.body, redirect: 'manual' })
+                const extra = {}
+                const link = res.headers.get('link')
+                if (link) extra['link'] = rewriteLinkHeader(link, selfBase(url, cfg))
+                return finalize(res, { extra })
+            }
 
-			if (rule.page) {
-				const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
-				return finalize(res)
-			}
+            if (rule.page) {
+                const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+                return finalize(res)
+            }
 
-			const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
-			if (res.status >= 300 && res.status <= 399) {
-				// 仍是重定向（例如跳域校验失败），原样交给客户端
-				return finalize(res)
-			}
-			return finalize(res, {
-				extra: {
-					// 下载类响应允许长缓存，命中 CDN 后不再回源
-					'cache-control': res.headers.get('cache-control') || 'public, max-age=600',
-				},
-			})
-		} catch (err) {
-			console.error('代理失败:', err && err.stack)
-			return jsonRes({ error: '上游请求失败: ' + (err && err.message) }, 502)
-		}
-	},
+            const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+            if (res.status >= 300 && res.status <= 399) {
+                // 仍是重定向（例如跳域校验失败），原样交给客户端
+                return finalize(res)
+            }
+            return finalize(res, {
+                extra: {
+                    // 下载类响应允许长缓存，命中 CDN 后不再回源
+                    'cache-control': res.headers.get('cache-control') || 'public, max-age=600',
+                },
+            })
+        } catch (err) {
+            console.error('代理失败:', err && err.stack)
+            return jsonRes({ error: '上游请求失败: ' + (err && err.message) }, 502)
+        }
+    },
 }
