@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = '46b34932d2709c829ce01c47d1e8cd807f1b221d'
+const ASSET_COMMIT = '10e189d7c990103a5e35f9bece1e3101a4333679'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -106,16 +106,32 @@ const HOME_HTML = `<!DOCTYPE html>
     </form>
 
     <div id="result" class="result" style="display: none;">
-        <div class="retext">
-            <p><span id="generated-link"></span></p>
+        <div class="cb">
+            <div class="cb-head">
+                <span class="cb-title">加速链接</span>
+                <button type="button" class="cb-copy" onclick="copyBlock('url', this)" title="复制链接">
+                    <span class="iconfont">&#xe60f;</span>
+                </button>
+            </div>
+            <code class="cb-code" id="code-url"></code>
         </div>
-        <div class="button-container">
-            <div class="button" onclick="copyLink()" title="复制链接">
-                <span class="iconfont">&#xe60f;</span>
+        <div class="cb">
+            <div class="cb-head">
+                <span class="cb-title">wget 下载</span>
+                <button type="button" class="cb-copy" onclick="copyBlock('wget', this)" title="复制 wget 命令">
+                    <span class="iconfont">&#xe60f;</span>
+                </button>
             </div>
-            <div class="button" onclick="jumpToLink()" title="跳转">
-                <span class="iconfont">&#xe6ad;</span>
+            <code class="cb-code" id="code-wget"></code>
+        </div>
+        <div class="cb">
+            <div class="cb-head">
+                <span class="cb-title">curl 下载</span>
+                <button type="button" class="cb-copy" onclick="copyBlock('curl', this)" title="复制 curl 命令">
+                    <span class="iconfont">&#xe60f;</span>
+                </button>
             </div>
+            <code class="cb-code" id="code-curl"></code>
         </div>
     </div>
 
