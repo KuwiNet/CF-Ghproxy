@@ -20,7 +20,7 @@
  *      静态资源（css / js / 字体 / logo）走 jsDelivr；commit 号集中在 ASSET_COMMIT 一个常量，
  *      以后换版本只改这一行。首页响应头 no-cache，避免浏览器/边缘缓存旧页面。
  *      设 BUILTIN_HOME=0 可回退到原来的 ASSET_URL 拉取行为。
- *   8. 导航高亮块改为纯 CSS（见 css/navbar.css 的 ::before 规则），不再靠 JS 测量定位，
+ *   8. 导航高亮块改为纯 CSS（见 css/navbar.css 的 li.active>a 规则），不再靠 JS 测量定位，
  *      JS 没加载、字体没就绪、换分辨率都不会再错位。
  *
  * 环境变量：
@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = '2623f9a1198dc02475ad4201aea669b6d59b923d'
+const ASSET_COMMIT = 'c5d58a331e812ef9064931f5b9f951d690284c50'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
