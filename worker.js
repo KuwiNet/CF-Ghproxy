@@ -76,7 +76,7 @@ const HOME_HTML = `<!DOCTYPE html>
                             <a class="nav-link" href="https://oproxy.cc/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont">&#xe6cc;</span> Docker 加速</a>
+                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont">&#xe6cc;</span> Docker 搜索</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi 分享</a>
