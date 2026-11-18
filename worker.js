@@ -498,9 +498,9 @@ export default {
             target.startsWith('github.com/') &&
             request.headers.get('sec-fetch-mode') === 'navigate'
         ) {
-            const shortUrl = new URL(request.url)
-            shortUrl.pathname = '/' + target
-            return Response.redirect(shortUrl.href, 302)
+            // 注意：必须用对外域名（PUBLIC_HOST），不能用 request.url —— EO 回源时 Host 是 gh.oproxy.cc
+            const shortHref = selfBase(url, cfg) + '/' + target + (url.search || '')
+            return Response.redirect(shortHref, 302)
         }
 
         let upstream = target
