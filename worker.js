@@ -495,7 +495,7 @@ export default {
         if (
             rule.page &&
             method === 'GET' &&
-            target.startsWith('github.com/') &&
+            /^\/github\.com\//i.test(url.pathname) &&
             request.headers.get('sec-fetch-mode') === 'navigate'
         ) {
             // 注意：必须用对外域名（PUBLIC_HOST），不能用 request.url —— EO 回源时 Host 是 gh.oproxy.cc
