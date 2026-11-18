@@ -518,8 +518,8 @@ export default {
                 let res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
                 // GitHub 网页类也会时不时 429，重试两次避免刷新一次就白屏
                 if (method === 'GET' || method === 'HEAD') {
-                    for (let i = 0; i < 2 && (res.status === 429 || res.status === 503); i++) {
-                        await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+                    for (let i = 0; i < 3 && (res.status === 429 || res.status === 503); i++) {
+                        await new Promise((r) => setTimeout(r, 700 * (i + 1)))
                         res = await fetch(urlObj.href, { method, headers: init.headers, redirect: 'manual' })
                     }
                 }
@@ -560,8 +560,8 @@ export default {
 
             let res = await proxyFollow(urlObj, init, cfg.maxRedirect)
             if (method === 'GET' || method === 'HEAD') {
-                for (let i = 0; i < 2 && (res.status === 429 || res.status === 503); i++) {
-                    await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+                for (let i = 0; i < 3 && (res.status === 429 || res.status === 503); i++) {
+                    await new Promise((r) => setTimeout(r, 700 * (i + 1)))
                     res = await proxyFollow(urlObj, init, cfg.maxRedirect)
                 }
             }
