@@ -488,6 +488,21 @@ export default {
         }
 
         const { rule } = hit
+
+        // 浏览器地址栏直接打开 /github.com/{o}/{r}/... 时，统一落到简写 /{o}/{r}/...
+        // 这样页面基地址与简写一致，页面内相对地址不会被解析成 /github.com/github.com/...
+        // （脚本类请求 wget / curl / git 不带 sec-fetch-mode=navigate，不受影响，仍可用长路径）
+        if (
+            rule.page &&
+            method === 'GET' &&
+            target.startsWith('github.com/') &&
+            request.headers.get('sec-fetch-mode') === 'navigate'
+        ) {
+            const shortUrl = new URL(request.url)
+            shortUrl.pathname = '/' + target
+            return Response.redirect(shortUrl.href, 302)
+        }
+
         let upstream = target
         if (!/^https?:\/\//i.test(upstream)) upstream = 'https://' + upstream
 
