@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = '866ec26e018a3095b5ceeda74b27d129432b3614'
+const ASSET_COMMIT = '391d7c93410c506ed2b1010abc1eb56dfd3a8449'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -228,6 +228,7 @@ const RULES = [
     { name: 'release-asset', re: /^release-assets\.githubusercontent\.com\//i, follow: true },
     { name: 'lfs-media', re: /^media\.githubusercontent\.com\//i, follow: true },
     { name: 'lfs-cloud', re: /^github-cloud\.githubusercontent\.com\//i, follow: true },
+    { name: 'web-assets', re: /^(?:github\.githubassets\.com|avatars\.githubusercontent\.com|user-images\.githubusercontent\.com|private-user-images\.githubusercontent\.com|camo\.githubusercontent\.com)\//i, follow: true },
     { name: 'api', re: /^api\.github\.com\//i, api: true },
     { name: 'repo-page', re: /^github\.com\/([^/]+)\/([^/]+)(\/.*)?$/i, page: true },
 ]
@@ -293,7 +294,7 @@ function resolveTarget(pathname, search, prefix) {
     p = p.replace(/^(https?):\/+/, '$1://')
     if (search) p += search
     // 短写法：/owner/repo/... 自动补成 github.com/owner/repo/...
-    if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
+    if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.|github\.githubassets\.com|avatars\.githubusercontent\.com|user-images\.githubusercontent\.com|private-user-images\.githubusercontent\.com|camo\.githubusercontent\.com)/i.test(p)) {
         const segs = p.split('#')[0].split('?')[0].split('/').filter(Boolean)
         const SITE_ROOTS = /^(login|logout|signup|join|site|features|about|pricing|search|settings|sponsors|topics|marketplace|orgs|organizations|users|notifications|dashboard|codespaces|collections|events|enterprise|team|trending|explore|readme|home|account|apps|contact|new|site)$/i
         // 两段及以上且首段符合 GitHub 用户名（不含点）时视为 owner/repo 简写，
@@ -406,6 +407,19 @@ async function rewriteHtmlLinks(res, url, cfg, method) {
     text = text.replace(
         /(src|href)="\/([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/(?:refs[/?]|releases\/(?:expanded_assets|download)\/|archive\/|raw\/|blob\/)[^"]*)"/g,
         (m, attr, p1) => attr + '="' + base + '/github.com/' + p1 + '"'
+    )
+
+    // 3) 页面静态资源域（JS / CSS / 头像 / README 图片）也走代理，
+    //    否则浏览器要直连 githubassets，弱网下脚本挂掉后 React 区块（仓库导航栏、
+    //    文件大小、侧栏）就一直停在骨架，标签栏也不渲染
+    text = text.replace(
+        /https:\/\/(github\.githubassets\.com|avatars\.githubusercontent\.com|user-images\.githubusercontent\.com|private-user-images\.githubusercontent\.com|camo\.githubusercontent\.com)\//g,
+        (m, host) => base + '/' + host + '/'
+    )
+    // 协议相对写法 //github.githubassets.com/...（只匹配紧跟属性的，避免误伤）
+    text = text.replace(
+        /((?:src|href|content)=")\/\/(github\.githubassets\.com|avatars\.githubusercontent\.com|camo\.githubusercontent\.com)\//g,
+        (m, prefix, host) => prefix + base + '/' + host + '/'
     )
 
     const headers = new Headers(res.headers)
