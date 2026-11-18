@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'e22a04df3c4193cc1432140c10ee7b6c682c1097'
+const ASSET_COMMIT = 'dd37c66a50d6df34b174322924af5878f36bbcb6'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
