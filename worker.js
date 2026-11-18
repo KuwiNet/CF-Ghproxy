@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'ba36280d8412cf543115dea9f55bfecaf44b52af'
+const ASSET_COMMIT = '99c808fbad7190f0d7ef7120849d7be8a4ef9dc3'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -137,7 +137,7 @@ const HOME_HTML = `<!DOCTYPE html>
     </div>
 
     <div class="tips">
-        <p><span class="iconfont">&#xe763;</span> 链接支持带协议头（https://）或不带；也支持 owner/repo、owner/repo.git、owner/repo/archive/... 简写</p>
+        <p><span class="iconfont">&#xe763;</span> 链接支持带协议头（https://）或不带；也支持 owner/repo、owner/repo/issues、owner/repo/actions 等任意子页面简写。仓库地址第一条是浏览用页面（不带 .git），clone 命令自带 .git</p>
         <p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
         <ul class="domain-list">
             <li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
@@ -292,9 +292,18 @@ function resolveTarget(pathname, search, prefix) {
     // CF 会把路径里的 // 折叠成 /，这里补回来
     p = p.replace(/^(https?):\/+/, '$1://')
     if (search) p += search
-    // 短写法：/owner/repo/archive/... 自动补成 github.com/owner/repo/archive/...
+    // 短写法：/owner/repo/... 自动补成 github.com/owner/repo/...
     if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
-        if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-|refs)/i.test(p)) {
+        const segs = p.split('#')[0].split('?')[0].split('/').filter(Boolean)
+        const SITE_ROOTS = /^(login|logout|signup|join|site|features|about|pricing|search|settings|sponsors|topics|marketplace|orgs|organizations|users|notifications|dashboard|codespaces|collections|events|enterprise|team|trending|explore|readme|home|account|apps|contact|new|site)$/i
+        // 两段及以上且首段符合 GitHub 用户名（不含点）时视为 owner/repo 简写，
+        // 这样仓库页里的 /o/r/issues、/o/r/graphs/contributors 等站内链接也不会 404
+        if (
+            segs.length >= 2 &&
+            /^[A-Za-z0-9-]+$/.test(segs[0]) &&
+            /^[A-Za-z0-9._-]+$/.test(segs[1]) &&
+            !SITE_ROOTS.test(segs[0])
+        ) {
             p = 'github.com/' + p
         }
     }
@@ -506,7 +515,14 @@ export default {
             }
 
             if (rule.page) {
-                const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+                let res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+                // GitHub 网页类也会时不时 429，重试两次避免刷新一次就白屏
+                if (method === 'GET' || method === 'HEAD') {
+                    for (let i = 0; i < 2 && (res.status === 429 || res.status === 503); i++) {
+                        await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+                        res = await fetch(urlObj.href, { method, headers: init.headers, redirect: 'manual' })
+                    }
+                }
                 return finalize(await rewriteHtmlLinks(res, url, cfg, method))
             }
 
@@ -542,7 +558,13 @@ export default {
                 })
             }
 
-            const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+            let res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+            if (method === 'GET' || method === 'HEAD') {
+                for (let i = 0; i < 2 && (res.status === 429 || res.status === 503); i++) {
+                    await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+                    res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+                }
+            }
             if (res.status >= 300 && res.status <= 399) {
                 // 仍是重定向（例如跳域校验失败），原样交给客户端
                 return finalize(res)
