@@ -217,7 +217,7 @@ const PASSTHROUGH_HEADERS = [
  *  html:   普通仓库页面，原样转发（含 302）
  */
 const RULES = [
-    { name: 'repo-archive', re: /^github\.com\/([^/]+)\/([^/]+)\/(releases|archive)\//i, follow: true },
+    { name: 'repo-archive', re: /^github\.com\/([^/]+)\/([^/]+)\/(?:releases\/(?:download|assets|expanded_assets)|archive)\//i, follow: true },
     { name: 'repo-raw', re: /^github\.com\/([^/]+)\/([^/]+)\/(blob|raw)\//i, follow: true, blobToRaw: true },
     { name: 'repo-git', re: /^github\.com\/([^/]+)\/([^/]+)\/(info|git-)/i, follow: true },
     { name: 'repo-tags', re: /^github\.com\/([^/]+)\/([^/]+)\/tags/i, follow: true },
@@ -294,7 +294,7 @@ function resolveTarget(pathname, search, prefix) {
     if (search) p += search
     // 短写法：/owner/repo/archive/... 自动补成 github.com/owner/repo/archive/...
     if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.)/i.test(p)) {
-        if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-)/i.test(p)) {
+        if (/^[^/?#]+\/[^/?#]+\/(archive|releases|blob|raw|tags|tree|info|git-|refs)/i.test(p)) {
             p = 'github.com/' + p
         }
     }
@@ -374,6 +374,35 @@ function rewriteLinkHeader(value, base) {
             return m
         }
     })
+}
+
+/**
+ * 把 HTML 页面里会绕过代理的资产链接改写到本代理。
+ * 不改写的话，浏览器会直接去 github.com 请求资产片段/下载，release 的 Assets 就会一直转圈。
+ */
+async function rewriteHtmlLinks(res, url, cfg, method) {
+    const ct = res.headers.get('content-type') || ''
+    if (method !== 'GET' || res.status !== 200 || !/text\/html/i.test(ct)) return res
+
+    const base = selfBase(url, cfg)
+    let text = await res.text()
+
+    // 1) 绝对地址：https://github.com/{o}/{r}/releases|archive|raw|blob/...
+    text = text.replace(
+        /https:\/\/github\.com\/([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/(?:releases\/(?:expanded_assets|download)|archive|raw|blob)\/[^"'\s<>)]*)/g,
+        (m, p1) => base + '/github.com/' + p1
+    )
+
+    // 2) 站内相对片段：src|href="/{o}/{r}/refs?...."、"…/releases/expanded_assets/…" 等
+    text = text.replace(
+        /(src|href)="\/([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/(?:refs[/?]|releases\/(?:expanded_assets|download)\/|archive\/|raw\/|blob\/)[^"]*)"/g,
+        (m, attr, p1) => attr + '="' + base + '/github.com/' + p1 + '"'
+    )
+
+    const headers = new Headers(res.headers)
+    headers.delete('content-length')
+    headers.delete('content-encoding')
+    return new Response(text, { status: 200, statusText: res.statusText, headers })
 }
 
 /** 未匹配路径：回退到静态站点（仅当 BUILTIN_HOME=0 或非首页时） */
@@ -478,22 +507,7 @@ export default {
 
             if (rule.page) {
                 const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
-                const ct = res.headers.get('content-type') || ''
-                if (method === 'GET' && res.status === 200 && /text\/html/i.test(ct)) {
-                    const base = selfBase(url, cfg)
-                    let text = await res.text()
-                    // 页面里指向 github.com 的资产片段与下载链接要改写成本代理地址，
-                    // 否则浏览器会绕过代理直接请求 github.com，release 资产列表就会加载不出来
-                    text = text.replace(
-                        /https:\/\/github\.com\/([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/(?:releases\/(?:expanded_assets|download)|archive|raw|blob)\/[^"'\s<>)]*)/g,
-                        (m, p1) => base + '/github.com/' + p1
-                    )
-                    const h = new Headers(res.headers)
-                    h.delete('content-length')
-                    h.delete('content-encoding')
-                    return finalize(new Response(text, { status: 200, statusText: res.statusText, headers: h }))
-                }
-                return finalize(res)
+                return finalize(await rewriteHtmlLinks(res, url, cfg, method))
             }
 
             const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
@@ -501,10 +515,11 @@ export default {
                 // 仍是重定向（例如跳域校验失败），原样交给客户端
                 return finalize(res)
             }
-            return finalize(res, {
+            const out = await rewriteHtmlLinks(res, url, cfg, method)
+            return finalize(out, {
                 extra: {
                     // 下载类响应允许长缓存，命中 CDN 后不再回源
-                    'cache-control': res.headers.get('cache-control') || 'public, max-age=600',
+                    'cache-control': out.headers.get('cache-control') || 'public, max-age=600',
                 },
             })
         } catch (err) {
