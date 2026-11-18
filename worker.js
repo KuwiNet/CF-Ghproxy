@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'afa0e44ecf43a50662781db25d346af03072f0b8'
+const ASSET_COMMIT = 'e186ff1625ba2dea9e83e892d1a239ce046526ec'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -105,9 +105,11 @@ const HOME_HTML = `<!DOCTYPE html>
     </form>
 
     <div id="result" class="result" style="display: none;">
+        <div id="cb-note" style="display: none; margin: 0 0 12px; padding: 0 2px; font-size: 14px; line-height: 1.6; opacity: 0.85;"></div>
         <div class="cb">
             <div class="cb-head">
                 <span class="cb-title">加速链接</span>
+                <button type="button" class="cb-copy" onclick="openBlock('url')" title="在浏览器打开" style="margin-right: 4px;"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 3h7v7h-3V7.6L10.6 14.9l-1.4-1.4L16.4 6H14V3zM5 5h6v3H8v9h9v-3h3v6H5V5z" fill="currentColor"></path></svg></button>
                 <button type="button" class="cb-copy" onclick="copyBlock('url', this)" title="复制链接">
                     <span class="iconfont">&#xe60f;</span>
                 </button>
