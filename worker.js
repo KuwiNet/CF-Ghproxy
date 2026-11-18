@@ -510,6 +510,38 @@ export default {
                 return finalize(await rewriteHtmlLinks(res, url, cfg, method))
             }
 
+            // release 资产片段：内容基本不变，但并发请求容易被 GitHub 限流（429）导致页面一直转圈
+            // 这里先查 Worker 缓存，未命中才回源，并对 429 重试一次
+            if (/\/releases\/expanded_assets\//i.test(urlObj.pathname) && method === 'GET') {
+                const cacheKey = new Request('https://fragment-cache.internal' + urlObj.pathname)
+                try {
+                    const hit = await caches.default.match(cacheKey)
+                    if (hit) {
+                        const h = new Headers(hit.headers)
+                        h.set('x-fragment-cache', 'hit')
+                        return finalize(new Response(hit.body, { status: hit.status, headers: h }))
+                    }
+                } catch (e) {}
+
+                let res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+                for (let i = 0; i < 2 && (res.status === 429 || res.status === 403 || res.status === 503); i++) {
+                    await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+                    res = await proxyFollow(urlObj, init, cfg.maxRedirect)
+                }
+                if (res.status === 200) {
+                    try {
+                        const copy = res.clone()
+                        const h = new Headers(copy.headers)
+                        h.set('cache-control', 'public, max-age=604800')
+                        await caches.default.put(cacheKey, new Response(copy.body, { status: 200, headers: h }))
+                    } catch (e) {}
+                }
+                const frag = await rewriteHtmlLinks(res, url, cfg, method)
+                return finalize(frag, {
+                    extra: { 'cache-control': 'public, max-age=604800', 'x-fragment-cache': 'miss' },
+                })
+            }
+
             const res = await proxyFollow(urlObj, init, cfg.maxRedirect)
             if (res.status >= 300 && res.status <= 399) {
                 // 仍是重定向（例如跳域校验失败），原样交给客户端
