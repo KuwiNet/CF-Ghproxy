@@ -513,7 +513,7 @@ export default {
             // release 资产片段：内容基本不变，但并发请求容易被 GitHub 限流（429）导致页面一直转圈
             // 这里先查 Worker 缓存，未命中才回源，并对 429 重试一次
             if (/\/releases\/expanded_assets\//i.test(urlObj.pathname) && method === 'GET') {
-                const cacheKey = new Request('https://fragment-cache.internal' + urlObj.pathname)
+                const cacheKey = new Request(new URL(urlObj.pathname + '?__frag=1', request.url).href)
                 try {
                     const hit = await caches.default.match(cacheKey)
                     if (hit) {
