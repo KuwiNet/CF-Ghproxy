@@ -478,6 +478,21 @@ export default {
 
             if (rule.page) {
                 const res = await fetch(urlObj.href, { method, headers: init.headers, body: init.body, redirect: 'manual' })
+                const ct = res.headers.get('content-type') || ''
+                if (method === 'GET' && res.status === 200 && /text\/html/i.test(ct)) {
+                    const base = selfBase(url, cfg)
+                    let text = await res.text()
+                    // 页面里指向 github.com 的资产片段与下载链接要改写成本代理地址，
+                    // 否则浏览器会绕过代理直接请求 github.com，release 资产列表就会加载不出来
+                    text = text.replace(
+                        /https:\/\/github\.com\/([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/(?:releases\/(?:expanded_assets|download)|archive|raw|blob)\/[^"'\s<>)]*)/g,
+                        (m, p1) => base + '/github.com/' + p1
+                    )
+                    const h = new Headers(res.headers)
+                    h.delete('content-length')
+                    h.delete('content-encoding')
+                    return finalize(new Response(text, { status: 200, statusText: res.statusText, headers: h }))
+                }
                 return finalize(res)
             }
 
