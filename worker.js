@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'b1071bafe46db32a08c97df1e0324406fb934a92'
+const ASSET_COMMIT = 'ba36316c3a218fbf8db334ec1ca6aede372c9118'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -97,7 +97,6 @@ const HOME_HTML = `<!DOCTYPE html>
             class="search-input"
             name="q" 
             placeholder="请输入 GitHub 链接"
-            pattern="(https?://)?((github\.com|raw\.githubusercontent\.com|gist\.githubusercontent\.com|api\.github\.com|codeload\.github\.com|objects\.githubusercontent\.com|release-assets\.githubusercontent\.com|media\.githubusercontent\.com|github-cloud\.githubusercontent\.com)/\S+|\S+/\S+/(archive|releases|blob|raw|tags|tree|info|git-)\S+)" 
             required
         >
         <button type="submit" class="search-button">
