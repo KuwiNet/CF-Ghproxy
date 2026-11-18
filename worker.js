@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'e177b5a890c4fa0f78cc09a8ac1e91d5fad6ea83'
+const ASSET_COMMIT = 'c974a785a06b1bc8b248998714bfee9ebb4aa06f'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -297,7 +297,7 @@ function resolveTarget(pathname, search, prefix) {
     // 短写法：/owner/repo/... 自动补成 github.com/owner/repo/...
     if (!/^(?:https?:\/\/)?(github\.com|raw\.|gist\.|api\.|codeload\.|objects\.|release-assets\.|github\.githubassets\.com|avatars\.githubusercontent\.com|user-images\.githubusercontent\.com|private-user-images\.githubusercontent\.com|camo\.githubusercontent\.com)/i.test(p)) {
         const segs = p.split('#')[0].split('?')[0].split('/').filter(Boolean)
-        const SITE_ROOTS = /^(login|logout|signup|join|site|features|about|pricing|search|settings|sponsors|topics|marketplace|orgs|organizations|users|notifications|dashboard|codespaces|collections|events|enterprise|team|trending|explore|readme|home|account|apps|contact|new|site)$/i
+        const SITE_ROOTS = /^(login|logout|signup|join|site|features|about|pricing|search|settings|sponsors|topics|marketplace|orgs|organizations|users|notifications|dashboard|codespaces|collections|events|enterprise|team|trending|explore|readme|home|account|apps|contact|new|site|git-proxy|d-proxy|css|js|img|images|assets|fonts|favicon|robots|sitemap)$/i
         // 两段及以上且首段符合 GitHub 用户名（不含点）时视为 owner/repo 简写，
         // 这样仓库页里的 /o/r/issues、/o/r/graphs/contributors 等站内链接也不会 404
         if (
@@ -474,6 +474,30 @@ export default {
                 'content-type': 'text/html; charset=utf-8',
                 'cache-control': 'no-cache',
             })
+        }
+
+        // 站内静态资源（git-proxy / d-proxy / css / js / img …）直接走资源 CDN。
+        // 否则 /git-proxy/style.css 这类路径会被当成 owner/repo 代理到 GitHub 而 404
+        const staticPath = url.pathname.replace(/^\/+/, '')
+        if (
+            (method === 'GET' || method === 'HEAD') &&
+            (/^(git-proxy|d-proxy|css|js|img|images|assets|fonts)(\/|$)/i.test(staticPath) ||
+                /^(favicon\.ico|robots\.txt|sitemap\.xml)$/i.test(staticPath))
+        ) {
+            try {
+                const assetRes = await fetch(ASSET_CDN + url.pathname + (url.search || ''), {
+                    method,
+                    headers: { 'user-agent': request.headers.get('user-agent') || 'cf-ghproxy' },
+                    cf: { cacheTtl: 3600, cacheEverything: true },
+                })
+                const h = new Headers(assetRes.headers)
+                h.delete('content-security-policy')
+                h.delete('set-cookie')
+                h.set('access-control-allow-origin', '*')
+                return new Response(method === 'HEAD' ? null : assetRes.body, { status: assetRes.status, headers: h })
+            } catch (err) {
+                return jsonRes({ error: '无法加载静态资源: ' + (err && err.message) }, 502)
+            }
         }
 
         const target = resolveTarget(url.pathname, url.search, cfg.prefix)
