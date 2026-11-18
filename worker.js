@@ -74,16 +74,16 @@ const HOME_HTML = `<!DOCTYPE html>
                             <div class="right"></div>
                         </div>
                         <li class="nav-item active">
-                            <a class="nav-link" href="https://oproxy.cc/"><span class="iconfont icon-github"></span> Github 加速</a>
+                            <a class="nav-link" href="https://oproxy.cc/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont icon-docker"></span> Docker 搜索</a>
+                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont">&#xe6cc;</span> Docker 搜索</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont icon-KuWi"></span> KuWi</a>
+                            <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont icon-a"></span> AFRP内网穿透</a>
+                            <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont">&#xe608;</span> AFRP内网穿透</a>
                         </li>
                     </ul>
                 </div>
@@ -110,7 +110,7 @@ const HOME_HTML = `<!DOCTYPE html>
         <div class="cb">
             <div class="cb-head">
                 <span class="cb-title">加速链接</span>
-                <button type="button" class="cb-copy" onclick="openBlock('url')" title="在浏览器打开" style="margin-right: 4px;"><span class="iconfont icon-tiaozhuan"></span></button>
+                <button type="button" class="cb-copy" onclick="openBlock('url')" title="在浏览器打开" style="margin-right: 4px;"><span class="iconfont">&#xe6ad;</span></button>
                 <button type="button" class="cb-copy" onclick="copyBlock('url', this)" title="复制链接">
                     <span class="iconfont">&#xe60f;</span>
                 </button>
@@ -172,7 +172,7 @@ const HOME_HTML = `<!DOCTYPE html>
     
     <p style="position: sticky;top: calc(100% - 2.5em);">
         <br><br>
-        Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont icon-KuWi"></span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
+        Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
     </p>
 </div>
     <div id="notification" class="notification">
