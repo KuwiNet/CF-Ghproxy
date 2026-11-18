@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = '10e189d7c990103a5e35f9bece1e3101a4333679'
+const ASSET_COMMIT = 'b1071bafe46db32a08c97df1e0324406fb934a92'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -97,7 +97,7 @@ const HOME_HTML = `<!DOCTYPE html>
             class="search-input"
             name="q" 
             placeholder="请输入 GitHub 链接"
-            pattern="^((https?://)?(github.com/.+?/.+?/(?:releases|archive|blob|raw|suites)|((?:raw|gist).(?:githubusercontent|github).com))/.+$" 
+            pattern="(https?://)?((github\.com|raw\.githubusercontent\.com|gist\.githubusercontent\.com|api\.github\.com|codeload\.github\.com|objects\.githubusercontent\.com|release-assets\.githubusercontent\.com|media\.githubusercontent\.com|github-cloud\.githubusercontent\.com)/\S+|\S+/\S+/(archive|releases|blob|raw|tags|tree|info|git-)\S+)" 
             required
         >
         <button type="submit" class="search-button">
@@ -136,16 +136,18 @@ const HOME_HTML = `<!DOCTYPE html>
     </div>
 
     <div class="tips">
-        <p><span class="iconfont">&#xe763;</span> GitHub 链接输入支持带协议头 ( https:// ) 或不带</p>
+        <p><span class="iconfont">&#xe763;</span> 链接支持带协议头（https://）或不带，也支持 owner/repo/archive/... 简写</p>
         <p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
         <ul class="domain-list">
             <li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
             <li><span class="iconfont">&#xe6af;</span> gist.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> api.github.com</li>
+            <li><span class="iconfont">&#xe6af;</span> codeload.github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> objects.githubusercontent.com</li>
+            <li><span class="iconfont">&#xe6af;</span> release-assets.githubusercontent.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> media.githubusercontent.com（LFS 直链）</li>
         </ul>
+        <p><span class="iconfont">&#xe6ca;</span> Git 克隆：git clone https://oproxy.cc/github.com/user/project.git（仅 HTTPS 克隆/拉取）</p>
+        <p><span class="iconfont">&#xe618;</span> 大文件可断点续传：同一地址加 wget -c 或 curl -C -</p>
         <p><span class="iconfont">&#xe67c;</span> Release、Archive 使用 CF 加速，文件会跳转至 JsDelivr</p>
-        <p><span class="iconfont">&#xe610;</span>️ 支持 HTTPS Git Clone 
-        &nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持 SSH Git Clone 
-        &nbsp;&nbsp;<span class="iconfont">&#xed1a;</span>️ 不支持文件夹下载</p>
+        <p><span class="iconfont">&#xed1a;</span> 不支持：SSH 克隆、git push、私有仓库、文件夹直下；LFS 文件仅直链可下</p>
     </div>
 
     <div class="example">
@@ -163,6 +165,7 @@ const HOME_HTML = `<!DOCTYPE html>
         <p><span class="iconfont">&#xe6ca;</span>️️ Git克隆：git clone https://oproxy.cc/github.com/user/project.git</p>
         <p><span class="iconfont">&#xe618;</span>️️ 文件下载：wget https://oproxy.cc/raw.githubusercontent.com/user/repo/main/file.txt</p>
         <p><span class="iconfont">&#xe616;</span>️️️ 版本发布：curl -LO https://oproxy.cc/github.com/user/project/project.sh</p>
+        <p><span class="iconfont">&#xe618;</span>️️ 断点续传：wget -c https://oproxy.cc/github.com/user/project/archive/refs/heads/main.zip</p>
     </div>
     
     <p style="position: sticky;top: calc(100% - 2.5em);">
@@ -222,6 +225,8 @@ const RULES = [
     { name: 'codeload', re: /^codeload\.github\.com\//i, follow: true },
     { name: 'objects', re: /^objects\.githubusercontent\.com\//i, follow: true },
     { name: 'release-asset', re: /^release-assets\.githubusercontent\.com\//i, follow: true },
+    { name: 'lfs-media', re: /^media\.githubusercontent\.com\//i, follow: true },
+    { name: 'lfs-cloud', re: /^github-cloud\.githubusercontent\.com\//i, follow: true },
     { name: 'api', re: /^api\.github\.com\//i, api: true },
     { name: 'repo-page', re: /^github\.com\/([^/]+)\/([^/]+)(\/.*)?$/i, page: true },
 ]
