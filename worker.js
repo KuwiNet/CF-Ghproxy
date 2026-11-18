@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'e186ff1625ba2dea9e83e892d1a239ce046526ec'
+const ASSET_COMMIT = 'ba36280d8412cf543115dea9f55bfecaf44b52af'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -137,7 +137,7 @@ const HOME_HTML = `<!DOCTYPE html>
     </div>
 
     <div class="tips">
-        <p><span class="iconfont">&#xe763;</span> 链接支持带协议头（https://）或不带，也支持 owner/repo/archive/... 简写</p>
+        <p><span class="iconfont">&#xe763;</span> 链接支持带协议头（https://）或不带；也支持 owner/repo、owner/repo.git、owner/repo/archive/... 简写</p>
         <p><span class="iconfont">&#xe610;</span> 支持的域名：</p>
         <ul class="domain-list">
             <li><span class="iconfont">&#xe6af;</span> github.com &nbsp;&nbsp;<span class="iconfont">&#xe6af;</span> raw.githubusercontent.com</li>
