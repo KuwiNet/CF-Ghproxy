@@ -499,7 +499,9 @@ export default {
             request.headers.get('sec-fetch-mode') === 'navigate'
         ) {
             // 注意：必须用对外域名（PUBLIC_HOST），不能用 request.url —— EO 回源时 Host 是 gh.oproxy.cc
-            const shortHref = selfBase(url, cfg) + '/' + target + (url.search || '')
+            // 且要把 github.com/ 前缀去掉，否则会重定向回自身
+            const shortTarget = target.replace(/^github\.com\//i, '')
+            const shortHref = selfBase(url, cfg) + '/' + shortTarget + (url.search || '')
             return Response.redirect(shortHref, 302)
         }
 
