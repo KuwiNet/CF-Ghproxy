@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'ba36316c3a218fbf8db334ec1ca6aede372c9118'
+const ASSET_COMMIT = 'afa0e44ecf43a50662781db25d346af03072f0b8'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -116,7 +116,7 @@ const HOME_HTML = `<!DOCTYPE html>
         </div>
         <div class="cb">
             <div class="cb-head">
-                <span class="cb-title">wget 下载</span>
+                <span class="cb-title" id="cb-title-wget">wget 下载</span>
                 <button type="button" class="cb-copy" onclick="copyBlock('wget', this)" title="复制 wget 命令">
                     <span class="iconfont">&#xe60f;</span>
                 </button>
@@ -125,7 +125,7 @@ const HOME_HTML = `<!DOCTYPE html>
         </div>
         <div class="cb">
             <div class="cb-head">
-                <span class="cb-title">curl 下载</span>
+                <span class="cb-title" id="cb-title-curl">curl 下载</span>
                 <button type="button" class="cb-copy" onclick="copyBlock('curl', this)" title="复制 curl 命令">
                     <span class="iconfont">&#xe60f;</span>
                 </button>
