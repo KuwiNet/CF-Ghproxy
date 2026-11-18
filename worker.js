@@ -41,7 +41,7 @@ const DEFAULT_PREFIX = '/'
 const DEFAULT_ASSET_URL = 'https://kuwinet.github.io/CF-Ghproxy/'
 
 /** 静态资源版本：jsDelivr 固定 commit（换版本只改这一行） */
-const ASSET_COMMIT = 'de89117d31e506f0f5e754d334e3d9918c780814'
+const ASSET_COMMIT = '2429ac95e6f0379e2d99abfadab658bd82596392'
 const ASSET_CDN = 'https://cdn.jsdelivr.net/gh/KuwiNet/kuwinet.github.io@' + ASSET_COMMIT
 
 /** 内置首页（原 git-proxy/index.html），资源引用统一走 ASSET_CDN */
@@ -58,6 +58,7 @@ const HOME_HTML = `<!DOCTYPE html>
     <link rel="stylesheet" href="${ASSET_CDN}/git-proxy/style.css">
     <link href="${ASSET_CDN}/css/navbar.css" rel="stylesheet">
     <link href="${ASSET_CDN}/css/basic.css" rel="stylesheet">
+<link href="//at.alicdn.com/t/c/font_4892763_skkvi1iofje.css" rel="stylesheet">
 </head>
 <body>
         <nav class="navbar navbar-expand-custom navbar-mainbg">
@@ -73,16 +74,16 @@ const HOME_HTML = `<!DOCTYPE html>
                             <div class="right"></div>
                         </div>
                         <li class="nav-item active">
-                            <a class="nav-link" href="https://oproxy.cc/"><span class="iconfont">&#xe7ab;</span> Github 加速</a>
+                            <a class="nav-link" href="https://oproxy.cc/"><span class="iconfont icon-github"></span> Github 加速</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont">&#xe6cc;</span> Docker 搜索</a>
+                            <a class="nav-link" href="https://docker.oproxy.cc/"><span class="iconfont icon-docker"></span> Docker 搜索</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi 分享</a>
+                            <a class="nav-link" href="https://kuwi.net/" target="_blank"><span class="iconfont icon-KuWi"></span> KuWi</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont">&#xe6ea;</span> aFrp 免费FRP服务</a>
+                            <a class="nav-link" href="https://www.afrp.net/" target="_blank"><span class="iconfont icon-a"></span> AFRP内网穿透</a>
                         </li>
                     </ul>
                 </div>
@@ -171,7 +172,7 @@ const HOME_HTML = `<!DOCTYPE html>
     
     <p style="position: sticky;top: calc(100% - 2.5em);">
         <br><br>
-        Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont">&#xe609;</span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
+        Support by <a href="https://kuwi.net/" target="_blank"><span class="iconfont icon-KuWi"></span> KuWi</a> ,  Run on <a href="https://workers.cloudflare.com/" target="_blank"><span class="iconfont">&#xebf2;</span> Cloudflare Workers</a> . Fonts made from <a href="http://www.onlinewebfonts.com" target="_blank">Web Fonts</a> is licensed by CC BY 4.0
     </p>
 </div>
     <div id="notification" class="notification">
